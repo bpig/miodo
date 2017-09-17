@@ -6,12 +6,11 @@ from common import *
 
 
 def get_data_list():
+    top_dir = "data"
     ans = []
     for d in range(20, 28):
-        prefix = "data/date=%2d/" % d
-        tmp = os.listdir(prefix)
-        tmp = [prefix + _ for _ in tmp]
-        ans += [tmp]
+        prefix = "%s/date=%2d/" % (top_dir, d)
+        ans += [prefix + _ for _ in os.listdir(prefix)]
     return ans
 
 
@@ -43,7 +42,7 @@ def read(num_epochs=100):
 def inference(kv):
     # sparse_dim = 27088502
     sparse_dim = 1650679
-    layers = [128, 128, 128]
+    layers = [128, 128, 128, 128]
     glorot = tf.uniform_unit_scaling_initializer
 
     fea = tf.sparse_merge(kv['fid'], kv['fval'], sparse_dim)
@@ -51,13 +50,15 @@ def inference(kv):
                               initializer=glorot)
     biases = tf.get_variable("biases", [layers[0]], initializer=tf.zeros_initializer)
 
-    embed = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + biases
+    embed = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="mean") + biases
 
     l1 = tf.layers.dense(embed, layers[1], name="l1", activation=tf.nn.relu,
                          kernel_initializer=glorot)
     l2 = tf.layers.dense(l1, layers[2], name="l2", activation=tf.nn.relu,
                          kernel_initializer=glorot)
-    logits = tf.layers.dense(l2, 1, name="logists",
+    l3 = tf.layers.dense(l2, layers[3], name="l3", activation=tf.nn.relu,
+                         kernel_initializer=glorot)
+    logits = tf.layers.dense(l3, 1, name="logists",
                              kernel_initializer=glorot)
     return logits
 
@@ -72,7 +73,7 @@ def train_op(loss):
     lr = tf.train.exponential_decay(0.001,
                                     global_step,
                                     3000,
-                                    0.3,
+                                    0.5,
                                     staircase=True)
 
     optimizer = tf.train.AdamOptimizer(learning_rate=lr)
