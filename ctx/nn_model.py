@@ -6,7 +6,7 @@ from common import *
 
 
 def read(num_epochs=100):
-    data_filename = "part-r-00000"
+    data_filename = "part-r-00099"  #160w
     filename_queue = tf.train.string_input_producer(
         [data_filename], num_epochs=num_epochs)
     reader = tf.TFRecordReader()
@@ -29,7 +29,8 @@ def read(num_epochs=100):
 
 
 def inference(kv):
-    sparse_dim = 27088502
+    # sparse_dim = 27088502
+    sparse_dim = 1650679
     layers = [128, 128, 128]
     glorot = tf.uniform_unit_scaling_initializer
 
@@ -79,7 +80,7 @@ def train():
     global_step = tf.train.get_global_step()
     saver = tf.train.Saver()
     model_path = "model/ctx.ckpt"
-    log_path = "log"
+    log_path = "log_160w"
     writer = tf.summary.FileWriter(logdir=log_path)
 
     with tf.Session() as sess:
