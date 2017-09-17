@@ -6,8 +6,8 @@ from common import *
 
 
 def read():
-    data_filename = "train.tf"
-    filename_queue = tf.train.string_input_producer([data_filename], num_epochs=100000)
+    data_filename = "part-r-00000"
+    filename_queue = tf.train.string_input_producer([data_filename], num_epochs=100)
     reader = tf.TFRecordReader()
     key, value = reader.read(filename_queue)
 
@@ -22,15 +22,15 @@ def read():
 
     return tf.parse_example(batch, features={
         'label': tf.FixedLenFeature([1], tf.int64),
-        'fea_id': tf.VarLenFeature(tf.int64),
-        'fea_value': tf.VarLenFeature(tf.int64),
+        'fid': tf.VarLenFeature(tf.int64),
+        'fval': tf.VarLenFeature(tf.int64),
     })
 
 
 def train():
     kv = read()
     sparse_dim = 1322749
-    fea = tf.sparse_merge(kv['fea_id'], kv['fea_value'], sparse_dim)
+    fea = tf.sparse_merge(kv['fid'], kv['fval'], sparse_dim)
 
     weights = tf.get_variable("weights", [sparse_dim, 8])
     biases = tf.get_variable("biases", [8], initializer=tf.zeros_initializer)
