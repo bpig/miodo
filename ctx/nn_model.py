@@ -27,12 +27,11 @@ def read():
     })
 
 
-def train():
-    kv = read()
+def inference(kv):
     sparse_dim = 27088502
     layers = [128, 128, 128]
     fea = tf.sparse_merge(kv['fid'], kv['fval'], sparse_dim)
-    glorot = tf.glorot_uniform_initializer
+    glorot = tf.uniform_unit_scaling_initializer
     weights = tf.get_variable("weights", [sparse_dim, layers[0]],
                               initializer=glorot)
     biases = tf.get_variable("biases", [layers[0]], initializer=tf.zeros_initializer)
@@ -46,10 +45,15 @@ def train():
                          kernel_initializer=glorot)
     logits = tf.layers.dense(l2, 1, name="logists",
                              kernel_initializer=glorot)
+    return logits
 
+
+def loss_op(kv, logits):
     xe = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=tf.to_float(kv['label']))
-    loss = tf.reduce_mean(xe)
+    return tf.reduce_mean(xe)
 
+
+def train_op(loss):
     global_step = tf.contrib.framework.get_or_create_global_step()
     lr = tf.train.exponential_decay(0.001,
                                     global_step,
@@ -58,7 +62,15 @@ def train():
                                     staircase=True)
 
     optimizer = tf.train.AdamOptimizer(learning_rate=lr)
-    train_op = optimizer.minimize(loss, global_step=global_step)
+    return optimizer.minimize(loss, global_step=global_step)
+
+
+def train():
+    kv = read()
+    logits = inference(kv)
+    loss = loss_op(kv, logits)
+    opt = train_op(loss)
+    global_step = tf.contrib.framework.get_or_create_global_step()
 
     with tf.Session() as sess:
         tf.global_variables_initializer().run()
@@ -69,7 +81,7 @@ def train():
 
         try:
             while not coord.should_stop():
-                _, loss_value, gs = sess.run([train_op, loss, global_step])
+                _, loss_value, gs = sess.run([opt, loss, global_step])
                 print gs, loss_value
         except tf.errors.OutOfRangeError:
             print "up to epoch limits"
