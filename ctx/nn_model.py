@@ -6,7 +6,7 @@ from common import *
 
 
 def read(num_epochs=100):
-    data_filename = "part-r-00099"  #160w
+    data_filename = "part-r-00099"  # 160w
     filename_queue = tf.train.string_input_producer(
         [data_filename], num_epochs=num_epochs)
     reader = tf.TFRecordReader()
@@ -75,9 +75,16 @@ def train():
     kv = read()
     logits = inference(kv)
     loss = loss_op(kv, logits)
+
     summary = tf.summary.scalar("loss", loss)
     opt = train_op(loss)
+
     global_step = tf.train.get_global_step()
+    ema = tf.train.ExponentialMovingAverage(0.99, global_step)
+    avg = ema.apply([loss])
+    with tf.control_dependencies([avg]):
+        loss_ema = ema.average(loss)
+
     saver = tf.train.Saver()
     model_path = "model/ctx.ckpt"
     log_path = "log_160w"
@@ -92,8 +99,8 @@ def train():
 
         try:
             while not coord.should_stop():
-                _, loss_value, gs, loss_log = sess.run([opt, loss, global_step, summary])
-                print gs, loss_value
+                _, loss_value, ema_value, gs, loss_log = sess.run([opt, loss, loss_ema, global_step, summary])
+                print gs, loss_value, ema_value
                 writer.add_summary(loss_log, gs)
                 if gs % 10000 == 0:
                     saver.save(sess, model_path, global_step=global_step)
