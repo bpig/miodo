@@ -12,12 +12,13 @@ def get_data_list():
     ans = []
     for d in range(cf_int("date_begin"), cf_int("date_end") + 1):
         prefix = "%s/date=%2d/" % (top_dir, d)
-        ans += [prefix + _ for _ in os.listdir(prefix) if prefix.startswith("part")]
+        ans += [prefix + _ for _ in os.listdir(prefix) if _.startswith("part")]
     return ans
 
 
 def read():
     data_filename = get_data_list()
+    assert len(data_filename)
     print data_filename, len(data_filename)
     filename_queue = tf.train.string_input_producer(
         data_filename, num_epochs=cf_int("num_epochs"))
@@ -138,27 +139,5 @@ def train():
             coord.join(threads)
 
 
-def stat():
-    kv = read()
-    mean = tf.reduce_mean(tf.to_float(kv['label']))
-    c = 0.0
-    ct = 0
-    with tf.Session() as sess:
-        tf.local_variables_initializer().run()
-        coord = tf.train.Coordinator()
-        threads = tf.train.start_queue_runners(coord=coord, sess=sess)
-        try:
-            while not coord.should_stop():
-                c += sess.run(mean)
-                ct += 1
-        except tf.errors.OutOfRangeError:
-            print "up to epoch limits"
-        finally:
-            coord.request_stop()
-            coord.join(threads)
-    print c / ct
-
-
 if __name__ == "__main__":
-    # stat()
     train()

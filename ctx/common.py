@@ -20,6 +20,6 @@ def read_config(filename):
 
 
 if __name__ == "__main__":
-    cf_str, _, _ = read_config("conf/1.conf")
-    print cf_str("layers")
+    cf_str, _, _ = read_config("1.conf")
+    print cf_str("layer_dim")
     pass
