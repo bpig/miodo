@@ -54,7 +54,6 @@ def inference(kv):
         biases = tf.get_variable(
             "biases", [1], initializer=tf.zeros_initializer)
         wide = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + biases
-        wide = tf.sigmoid(wide)
 
     with tf.variable_scope("embed"):
         weights = tf.get_variable("weights", [sparse_dim, layer_dim[0]],
@@ -69,13 +68,10 @@ def inference(kv):
             layer = tf.layers.dense(pre_layer, layer_dim[i], name="layer%d" % i,
                                     activation=tf.nn.relu, kernel_initializer=glorot)
             pre_layer = layer
+        deep = tf.layers.dense(pre_layer, 1, name="logists",
+                               kernel_initializer=glorot)
 
-    with tf.variable_scope("concat"):
-        merge_layer = tf.concat([wide, pre_layer], axis=1)
-        logits = tf.layers.dense(merge_layer, 1, name="logists",
-                                 kernel_initializer=glorot)
-
-    return logits
+    return wide + deep
 
 
 def loss_op(kv, logits):
@@ -89,12 +85,29 @@ def train_op(loss):
         cf_float("lr"), global_step, cf_int("lr_decay_step"),
         cf_float("lr_decay_rate"), staircase=True)
 
-    optimizer = tf.train.AdamOptimizer(learning_rate=lr)
-    opt = optimizer.minimize(loss, global_step=global_step)
+    vars = tf.trainable_variables()
+    for var in vars:
+        print(var, var.name, var.get_shape())
+
+    wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
+    print 'trainable_wide_var', len(wide_vars)
+    for var in wide_vars:
+        print var, var.name, var.get_shape()
+
+    deep_vars = list(set(vars) - set(wide_vars))
+    print 'trainable_deep_var', len(deep_vars)
+    for var in deep_vars:
+        print var, var.name, var.get_shape()
+
+    ftrl = tf.train.FtrlOptimizer(0.1, l1_regularization_strength=1.0)
+    wide_opt = ftrl.minimize(loss, var_list=wide_vars)
+
+    adam = tf.train.AdamOptimizer(learning_rate=lr)
+    deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
 
     ema = tf.train.ExponentialMovingAverage(0.99, global_step)
     avg = ema.apply(tf.trainable_variables())
-    return tf.group(*[opt, avg])
+    return tf.group(*[deep_opt, wide_opt, avg])
 
 
 def get_model_path():
@@ -107,6 +120,9 @@ def get_log_path():
     if not os.path.exists("log"):
         os.mkdir("log")
     log_path = "log/%s_log" % sys.argv[1][:-5]
+    os.system("mkdir -p %s" % log_path)
+    cmd = "cp ./nn_model.py %s" % log_path
+    os.system(cmd)
     fout = open(log_path + "/loss_log", "w")
     return log_path, fout
 
