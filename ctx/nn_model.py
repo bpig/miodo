@@ -48,12 +48,12 @@ def inference(kv):
 
     fea = tf.sparse_merge(kv['fid'], kv['fval'], sparse_dim)
 
-    with tf.variable_scope("wide"):
-        weights = tf.get_variable(
-            "weights", [sparse_dim, 1], initializer=tf.zeros_initializer)
-        biases = tf.get_variable(
-            "biases", [1], initializer=tf.zeros_initializer)
-        wide = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + biases
+    # with tf.variable_scope("wide"):
+    #     weights = tf.get_variable(
+    #         "weights", [sparse_dim, 1], initializer=glorot)
+    #     biases = tf.get_variable(
+    #         "biases", [1], initializer=tf.zeros_initializer)
+    #     wide = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + biases
 
     with tf.variable_scope("embed"):
         weights = tf.get_variable("weights", [sparse_dim, layer_dim[0]],
@@ -70,7 +70,8 @@ def inference(kv):
             pre_layer = layer
 
     with tf.variable_scope("concat"):
-        merge = tf.concat([wide, pre_layer], 1)
+        # merge = tf.concat([wide, pre_layer], 1)
+        merge = pre_layer
         logits = tf.layers.dense(merge, 1, name="logists",
                                  kernel_initializer=glorot)
 
@@ -92,15 +93,15 @@ def train_op(loss):
     wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
     deep_vars = list(set(vars) - set(wide_vars))
 
-    ftrl = tf.train.FtrlOptimizer(cf_float("ftrl_lr"), l1_regularization_strength=1.0)
-    wide_opt = ftrl.minimize(loss, var_list=wide_vars)
+    # ftrl = tf.train.FtrlOptimizer(cf_float("ftrl_lr"), l1_regularization_strength=1.0)
+    # wide_opt = ftrl.minimize(loss, var_list=wide_vars)
 
     adam = tf.train.AdamOptimizer(learning_rate=lr)
     deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
 
     ema = tf.train.ExponentialMovingAverage(0.99, global_step)
     avg = ema.apply(tf.trainable_variables())
-    return tf.group(*[deep_opt, wide_opt, avg])
+    return tf.group(*[deep_opt, avg])
 
 
 def get_model_path():
