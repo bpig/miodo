@@ -25,8 +25,8 @@ def read(num_epochs=100):
 
     batch = tf.train.shuffle_batch(
         [value],
-        batch_size=128,
-        num_threads=32,
+        batch_size=256,
+        num_threads=16,
         capacity=50000,
         min_after_dequeue=5000,
         allow_smaller_final_batch=False
@@ -72,7 +72,7 @@ def train_op(loss):
     global_step = tf.train.create_global_step()
     lr = tf.train.exponential_decay(0.001,
                                     global_step,
-                                    30000,
+                                    10000,
                                     0.5,
                                     staircase=True)
 
@@ -94,7 +94,7 @@ def train():
 
     global_step = tf.train.get_global_step()
     saver = tf.train.Saver()
-    model_path = "model/ctx.ckpt"
+    model_path = "model2/ctx.ckpt"
     log_path = "log_160w"
     writer = tf.summary.FileWriter(logdir=log_path)
 
