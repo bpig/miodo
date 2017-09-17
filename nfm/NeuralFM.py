@@ -18,6 +18,7 @@ import tensorflow as tf
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import auc
 from sklearn.metrics import log_loss
 from time import time
 import argparse
@@ -297,9 +298,9 @@ class NeuralFM(BaseEstimator, TransformerMixin):
         # Check Init performance
         if self.verbose > 0:
             t2 = time()
-            init_train = self.evaluate(Train_data)
-            init_valid = self.evaluate(Validation_data)
-            init_test = self.evaluate(Test_data)
+            init_train = self.evaluate(Train_data, "train")
+            init_valid = self.evaluate(Validation_data, "valid")
+            init_test = self.evaluate(Test_data, "test")
             print("Init: \t train=%.4f, validation=%.4f, test=%.4f [%.1f s]" % (
                 init_train, init_valid, init_test, time() - t2))
 
@@ -315,9 +316,9 @@ class NeuralFM(BaseEstimator, TransformerMixin):
             t2 = time()
 
             # output validation
-            train_result = self.evaluate(Train_data)
-            valid_result = self.evaluate(Validation_data)
-            test_result = self.evaluate(Test_data)
+            train_result = self.evaluate(Train_data, "train")
+            valid_result = self.evaluate(Validation_data, "valid")
+            test_result = self.evaluate(Test_data, "test")
 
             self.train_rmse.append(train_result)
             self.valid_rmse.append(valid_result)
@@ -340,7 +341,7 @@ class NeuralFM(BaseEstimator, TransformerMixin):
                     return True
         return False
 
-    def evaluate(self, data):  # evaluate the results for an input set
+    def evaluate(self, data, name):  # evaluate the results for an input set
         num_example = len(data['Y'])
         feed_dict = {self.train_features: data['X'],
                      # self.train_labels: [[y] for y in data['Y']],
@@ -349,6 +350,7 @@ class NeuralFM(BaseEstimator, TransformerMixin):
         predictions = self.sess.run(self.out, feed_dict=feed_dict)
         y_pred = np.reshape(predictions, (num_example,))
         y_true = np.reshape(data['Y'], (num_example,))
+        print name, auc(y_true, y_pred, True)
         if self.loss_type == 'square_loss':
             predictions_bounded = np.maximum(y_pred, np.ones(num_example) * min(y_true))  # bound the lower values
             predictions_bounded = np.minimum(predictions_bounded,
