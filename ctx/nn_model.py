@@ -5,9 +5,10 @@
 from common import *
 
 
-def read():
+def read(num_epochs=100):
     data_filename = "part-r-00000"
-    filename_queue = tf.train.string_input_producer([data_filename], num_epochs=100)
+    filename_queue = tf.train.string_input_producer(
+        [data_filename], num_epochs=num_epochs)
     reader = tf.TFRecordReader()
     key, value = reader.read(filename_queue)
 

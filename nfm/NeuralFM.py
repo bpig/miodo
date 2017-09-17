@@ -19,6 +19,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import auc
+from sklearn.metrics import roc_auc_score
 from sklearn.metrics import log_loss
 from time import time
 import argparse
@@ -49,7 +50,7 @@ def parse_args():
                         help='Regularizer for bilinear part.')
     parser.add_argument('--lr', type=float, default=0.001,
                         help='Learning rate.')
-    parser.add_argument('--loss_type', nargs='?', default='log_loss',
+    parser.add_argument('--loss_type', nargs='?', default='square_loss',
                         help='Specify a loss type (square_loss or log_loss).')
     parser.add_argument('--optimizer', nargs='?', default='AdamOptimizer',
                         help='Specify an optimizer type (AdamOptimizer, AdagradOptimizer, GradientDescentOptimizer, MomentumOptimizer).')
@@ -153,7 +154,7 @@ class NeuralFM(BaseEstimator, TransformerMixin):
                         tf.subtract(self.train_labels, self.out)) + tf.contrib.layers.l2_regularizer(
                         self.lamda_bilinear)(self.weights['feature_embeddings'])  # regulizer
                 else:
-                    tf.losses.mean_squared_error(
+                    self.loss = tf.losses.mean_squared_error(
                         labels=self.train_labels, predictions=self.out)
             elif self.loss_type == 'log_loss':
                 self.out = tf.sigmoid(self.out)
@@ -350,7 +351,9 @@ class NeuralFM(BaseEstimator, TransformerMixin):
         predictions = self.sess.run(self.out, feed_dict=feed_dict)
         y_pred = np.reshape(predictions, (num_example,))
         y_true = np.reshape(data['Y'], (num_example,))
-        print name, auc(y_true, y_pred, True)
+        print y_true[:5]
+        print y_pred[:5]
+        print name, roc_auc_score(y_true, y_pred)
         if self.loss_type == 'square_loss':
             predictions_bounded = np.maximum(y_pred, np.ones(num_example) * min(y_true))  # bound the lower values
             predictions_bounded = np.minimum(predictions_bounded,
