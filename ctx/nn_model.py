@@ -73,10 +73,13 @@ def train():
     kv = read()
     logits = inference(kv)
     loss = loss_op(kv, logits)
+    summary = tf.summary.scalar("loss", loss)
     opt = train_op(loss)
     global_step = tf.train.get_global_step()
     saver = tf.train.Saver()
     model_path = "model/ctx.ckpt"
+    log_path = "log"
+    writer = tf.summary.FileWriter(logdir=log_path)
 
     with tf.Session() as sess:
         tf.global_variables_initializer().run()
@@ -87,8 +90,9 @@ def train():
 
         try:
             while not coord.should_stop():
-                _, loss_value, gs = sess.run([opt, loss, global_step])
+                _, loss_value, gs, loss_log = sess.run([opt, loss, global_step, summary])
                 print gs, loss_value
+                writer.add_summary(loss_log, gs)
                 if gs % 10000 == 0:
                     saver.save(sess, model_path, global_step=global_step)
         except tf.errors.OutOfRangeError:
