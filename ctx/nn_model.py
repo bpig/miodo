@@ -7,16 +7,16 @@ from common import *
 
 def read():
     data_filename = "train.tf"
-    filename_queue = tf.train.string_input_producer([data_filename], num_epochs=1)
+    filename_queue = tf.train.string_input_producer([data_filename], num_epochs=100000)
     reader = tf.TFRecordReader()
     key, value = reader.read(filename_queue)
 
     batch = tf.train.shuffle_batch(
         [value],
         batch_size=64,
-        num_threads=2,
-        capacity=1000,
-        min_after_dequeue=300,
+        num_threads=32,
+        capacity=50000,
+        min_after_dequeue=5000,
         allow_smaller_final_batch=False
     )
 
@@ -29,11 +29,10 @@ def read():
 
 def train():
     kv = read()
+    sparse_dim = 1322749
+    fea = tf.sparse_merge(kv['fea_id'], kv['fea_value'], sparse_dim)
 
-    fea = tf.sparse_merge(kv['fea_id'], kv['fea_value'], 315041)
-
-    weights = tf.get_variable("weights", [315041, 8],
-                              initializer=tf.variance_scaling_initializer())
+    weights = tf.get_variable("weights", [sparse_dim, 8])
     biases = tf.get_variable("biases", [8], initializer=tf.zeros_initializer)
 
     embed = tf.nn.embedding_lookup_sparse(
@@ -47,7 +46,7 @@ def train():
     lr = tf.train.exponential_decay(0.001,
                                     global_step,
                                     150,
-                                    0.1,
+                                    0.5,
                                     staircase=True)
 
     optimizer = tf.train.AdamOptimizer(learning_rate=lr)
@@ -93,5 +92,5 @@ def stat():
 
 
 if __name__ == "__main__":
-    stat()
-    # train()
+    # stat()
+    train()

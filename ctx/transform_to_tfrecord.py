@@ -13,7 +13,7 @@ def _int64_feature(value):
 
 def get_record():
     """return label, fea:value list"""
-    filename = "/Users/shuai.li/Downloads/part-x"
+    filename = "part-00099"
     for l in open(filename):
         l = l.strip()
         if not l:
