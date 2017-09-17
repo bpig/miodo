@@ -29,11 +29,11 @@ def read():
 
 def train():
     kv = read()
-    sparse_dim = 1322749
+    sparse_dim = 27088502
     fea = tf.sparse_merge(kv['fid'], kv['fval'], sparse_dim)
 
-    weights = tf.get_variable("weights", [sparse_dim, 8])
-    biases = tf.get_variable("biases", [8], initializer=tf.zeros_initializer)
+    weights = tf.get_variable("weights", [sparse_dim, 128])
+    biases = tf.get_variable("biases", [128], initializer=tf.zeros_initializer)
 
     embed = tf.nn.embedding_lookup_sparse(
         weights, fea, None, combiner="sum") + biases
