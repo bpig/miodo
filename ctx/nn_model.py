@@ -60,7 +60,7 @@ def train_op(loss):
     lr = tf.train.exponential_decay(0.001,
                                     global_step,
                                     3000,
-                                    0.5,
+                                    0.3,
                                     staircase=True)
 
     optimizer = tf.train.AdamOptimizer(learning_rate=lr)
@@ -80,16 +80,12 @@ def train():
     opt = train_op(loss)
 
     global_step = tf.train.get_global_step()
-    ema = tf.train.ExponentialMovingAverage(0.99, global_step)
-    avg = ema.apply([loss])
-    with tf.control_dependencies([avg]):
-        loss_ema = ema.average(loss)
-
     saver = tf.train.Saver()
     model_path = "model/ctx.ckpt"
     log_path = "log_160w"
     writer = tf.summary.FileWriter(logdir=log_path)
 
+    aa = 0.0
     with tf.Session() as sess:
         tf.global_variables_initializer().run()
         tf.local_variables_initializer().run()
@@ -99,8 +95,10 @@ def train():
 
         try:
             while not coord.should_stop():
-                _, loss_value, ema_value, gs, loss_log = sess.run([opt, loss, loss_ema, global_step, summary])
-                print gs, loss_value, ema_value
+                _, loss_value, gs, loss_log = sess.run([opt, loss, global_step, summary])
+                factor = 0.99
+                aa = aa * factor + (1 - factor) * loss_value
+                print gs, loss_value, aa
                 writer.add_summary(loss_log, gs)
                 if gs % 10000 == 0:
                     saver.save(sess, model_path, global_step=global_step)
