@@ -106,7 +106,9 @@ def get_model_path():
 def get_log_path():
     if not os.path.exists("log"):
         os.mkdir("log")
-    return "log/%s_log" % sys.argv[1][:-5]
+    log_path = "log/%s_log" % sys.argv[1][:-5]
+    fout = open(log_path + "/loss_log", "w")
+    return log_path, fout
 
 
 def train():
@@ -120,7 +122,7 @@ def train():
     global_step = tf.train.get_global_step()
     saver = tf.train.Saver()
     model_path = get_model_path()
-    log_path = get_log_path()
+    log_path, loss_writer = get_log_path()
     writer = tf.summary.FileWriter(logdir=log_path)
 
     aa = 0.0
@@ -140,6 +142,7 @@ def train():
                 else:
                     aa = aa * factor + (1 - factor) * loss_value
                 print gs, loss_value, aa
+                print >> loss_writer, gs, loss_value, aa
                 writer.add_summary(loss_log, gs)
                 if gs % cf_int("lr_decay_step") == 0:
                     saver.save(sess, model_path, global_step=global_step)
