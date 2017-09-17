@@ -30,14 +30,15 @@ def read():
 def inference(kv):
     sparse_dim = 27088502
     layers = [128, 128, 128]
-    fea = tf.sparse_merge(kv['fid'], kv['fval'], sparse_dim)
     glorot = tf.uniform_unit_scaling_initializer
-    weights = tf.get_variable("weights", [sparse_dim, layers[0]],
-                              initializer=glorot)
-    biases = tf.get_variable("biases", [layers[0]], initializer=tf.zeros_initializer)
 
-    embed = tf.nn.embedding_lookup_sparse(
-        weights, fea, None, combiner="sum") + biases
+    with tf.device("/cpu:0"):
+        fea = tf.sparse_merge(kv['fid'], kv['fval'], sparse_dim)
+        weights = tf.get_variable("weights", [sparse_dim, layers[0]],
+                                  initializer=glorot)
+        biases = tf.get_variable("biases", [layers[0]], initializer=tf.zeros_initializer)
+
+        embed = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + biases
 
     l1 = tf.layers.dense(embed, layers[1], name="l1", activation=tf.nn.relu,
                          kernel_initializer=glorot)
@@ -54,23 +55,30 @@ def loss_op(kv, logits):
 
 
 def train_op(loss):
-    global_step = tf.contrib.framework.get_or_create_global_step()
+    global_step = tf.train.create_global_step()
     lr = tf.train.exponential_decay(0.001,
                                     global_step,
-                                    150,
+                                    3000,
                                     0.5,
                                     staircase=True)
 
     optimizer = tf.train.AdamOptimizer(learning_rate=lr)
-    return optimizer.minimize(loss, global_step=global_step)
+    opt = optimizer.minimize(loss, global_step=global_step)
+
+    ema = tf.train.ExponentialMovingAverage(0.99, global_step)
+    avg = ema.apply(tf.trainable_variables())
+    return tf.group([opt, avg])
 
 
 def train():
-    kv = read()
+    with tf.device("/cpu:0"):
+        kv = read()
     logits = inference(kv)
     loss = loss_op(kv, logits)
     opt = train_op(loss)
-    global_step = tf.contrib.framework.get_or_create_global_step()
+    global_step = tf.train.get_global_step()
+    saver = tf.train.Saver()
+    model_path = "model/ctx.ckpt"
 
     with tf.Session() as sess:
         tf.global_variables_initializer().run()
@@ -83,9 +91,12 @@ def train():
             while not coord.should_stop():
                 _, loss_value, gs = sess.run([opt, loss, global_step])
                 print gs, loss_value
+                if gs % 10000 == 0:
+                    saver.save(sess, model_path, global_step=global_step)
         except tf.errors.OutOfRangeError:
             print "up to epoch limits"
         finally:
+            saver.save(sess, model_path, global_step=global_step)
             coord.request_stop()
             coord.join(threads)
 
