@@ -4,28 +4,29 @@
 
 from common import *
 
+cf_str, cf_float, cf_int = read_config(sys.argv[1])
+
 
 def get_data_list():
-    top_dir = "data"
+    top_dir = cf_str("top_dir")
     ans = []
-    for d in range(20, 28):
+    for d in range(cf_int("date_begin"), cf_int("date_end") + 1):
         prefix = "%s/date=%2d/" % (top_dir, d)
-        ans += [prefix + _ for _ in os.listdir(prefix)]
+        ans += [prefix + _ for _ in os.listdir(prefix) if prefix.startswith("part")]
     return ans
 
 
-def read(num_epochs=100):
-    data_filename = ["part-r-00099"]  # 160w
+def read():
     data_filename = get_data_list()
     print data_filename, len(data_filename)
     filename_queue = tf.train.string_input_producer(
-        data_filename, num_epochs=num_epochs)
+        data_filename, num_epochs=cf_int("num_epochs"))
     reader = tf.TFRecordReader()
     key, value = reader.read(filename_queue)
 
     batch = tf.train.shuffle_batch(
         [value],
-        batch_size=256,
+        batch_size=cf_int("batch_size"),
         num_threads=16,
         capacity=50000,
         min_after_dequeue=5000,
@@ -40,26 +41,27 @@ def read(num_epochs=100):
 
 
 def inference(kv):
-    # sparse_dim = 27088502
-    sparse_dim = 1650679
-    layers = [128, 128, 128, 128]
+    sparse_dim = cf_int("sparse_dim")
+    layer_dim = eval(cf_str("layer_dim"))
     glorot = tf.uniform_unit_scaling_initializer
 
     fea = tf.sparse_merge(kv['fid'], kv['fval'], sparse_dim)
-    weights = tf.get_variable("weights", [sparse_dim, layers[0]],
-                              initializer=glorot)
-    biases = tf.get_variable("biases", [layers[0]], initializer=tf.zeros_initializer)
 
-    embed = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="mean") + biases
+    with tf.name_scope("embed"):
+        weights = tf.get_variable("weights", [sparse_dim, layer_dim[0]],
+                                  initializer=glorot)
+        biases = tf.get_variable("biases", [layer_dim[0]], initializer=tf.zeros_initializer)
 
-    l1 = tf.layers.dense(embed, layers[1], name="l1", activation=tf.nn.relu,
-                         kernel_initializer=glorot)
-    l2 = tf.layers.dense(l1, layers[2], name="l2", activation=tf.nn.relu,
-                         kernel_initializer=glorot)
-    l3 = tf.layers.dense(l2, layers[3], name="l3", activation=tf.nn.relu,
-                         kernel_initializer=glorot)
-    logits = tf.layers.dense(l3, 1, name="logists",
-                             kernel_initializer=glorot)
+        embed = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="mean") + biases
+
+    with tf.name_scope("deep"):
+        pre_layer = embed
+        for i in range(1, len(layer_dim)):
+            layer = tf.layers.dense(pre_layer, layer_dim[i], name="layer%d" % i,
+                                    activation=tf.nn.relu, kernel_initializer=glorot)
+            pre_layer = layer
+        logits = tf.layers.dense(pre_layer, 1, name="logists",
+                                 kernel_initializer=glorot)
     return logits
 
 
@@ -70,11 +72,9 @@ def loss_op(kv, logits):
 
 def train_op(loss):
     global_step = tf.train.create_global_step()
-    lr = tf.train.exponential_decay(0.001,
-                                    global_step,
-                                    10000,
-                                    0.5,
-                                    staircase=True)
+    lr = tf.train.exponential_decay(
+        cf_float("lr"), global_step, cf_int("lr_decay_step"),
+        cf_float("lr_decay_rate"), staircase=True)
 
     optimizer = tf.train.AdamOptimizer(learning_rate=lr)
     opt = optimizer.minimize(loss, global_step=global_step)
@@ -82,6 +82,16 @@ def train_op(loss):
     ema = tf.train.ExponentialMovingAverage(0.99, global_step)
     avg = ema.apply(tf.trainable_variables())
     return tf.group(*[opt, avg])
+
+
+def get_model_path():
+    model_path = "model/%s/" % sys.argv[1]
+    os.system("mkdir -p %s" % model_path)
+    return model_path + "ctx.ckpt"
+
+
+def get_log_path():
+    return sys.argv[1] + "_log/"
 
 
 def train():
@@ -94,8 +104,8 @@ def train():
 
     global_step = tf.train.get_global_step()
     saver = tf.train.Saver()
-    model_path = "model2/ctx.ckpt"
-    log_path = "log_160w"
+    model_path = get_model_path()
+    log_path = get_log_path()
     writer = tf.summary.FileWriter(logdir=log_path)
 
     aa = 0.0
