@@ -68,10 +68,13 @@ def inference(kv):
             layer = tf.layers.dense(pre_layer, layer_dim[i], name="layer%d" % i,
                                     activation=tf.nn.relu, kernel_initializer=glorot)
             pre_layer = layer
-        deep = tf.layers.dense(pre_layer, 1, name="logists",
-                               kernel_initializer=glorot)
 
-    return wide + deep
+    with tf.variable_scope("concat"):
+        merge = tf.concat([wide, pre_layer], 1)
+        logits = tf.layers.dense(merge, 1, name="logists",
+                                 kernel_initializer=glorot)
+
+    return logits
 
 
 def loss_op(kv, logits):
@@ -87,14 +90,7 @@ def train_op(loss):
 
     vars = tf.trainable_variables()
     wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
-    print 'trainable_wide_var', len(wide_vars)
-    for var in wide_vars:
-        print var, var.name, var.get_shape()
-
     deep_vars = list(set(vars) - set(wide_vars))
-    print 'trainable_deep_var', len(deep_vars)
-    for var in deep_vars:
-        print var, var.name, var.get_shape()
 
     ftrl = tf.train.FtrlOptimizer(cf_float("ftrl_lr"), l1_regularization_strength=1.0)
     wide_opt = ftrl.minimize(loss, var_list=wide_vars)
