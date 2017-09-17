@@ -19,7 +19,7 @@ def get_data_list():
 def read():
     data_filename = get_data_list()
     assert len(data_filename)
-    print data_filename, len(data_filename)
+    print len(data_filename)
     filename_queue = tf.train.string_input_producer(
         data_filename, num_epochs=cf_int("num_epochs"))
     reader = tf.TFRecordReader()
@@ -53,7 +53,8 @@ def inference(kv):
             "weights", [sparse_dim, 1], initializer=tf.zeros_initializer)
         biases = tf.get_variable(
             "biases", [1], initializer=tf.zeros_initializer)
-        wide = tf.sigmoid(tf.matmul(fea, weights) + biases)
+        wide = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + biases
+        wide = tf.sigmoid(wide)
 
     with tf.variable_scope("embed"):
         weights = tf.get_variable("weights", [sparse_dim, layer_dim[0]],
