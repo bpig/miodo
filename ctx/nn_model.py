@@ -48,21 +48,32 @@ def inference(kv):
 
     fea = tf.sparse_merge(kv['fid'], kv['fval'], sparse_dim)
 
-    with tf.name_scope("embed"):
+    with tf.variable_scope("wide"):
+        weights = tf.get_variable(
+            "weights", [sparse_dim, 1], initializer=tf.zeros_initializer)
+        biases = tf.get_variable(
+            "biases", [1], initializer=tf.zeros_initializer)
+        wide = tf.sigmoid(tf.matmul(fea, weights) + biases)
+
+    with tf.variable_scope("embed"):
         weights = tf.get_variable("weights", [sparse_dim, layer_dim[0]],
                                   initializer=glorot)
         biases = tf.get_variable("biases", [layer_dim[0]], initializer=tf.zeros_initializer)
 
         embed = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="mean") + biases
 
-    with tf.name_scope("deep"):
+    with tf.variable_scope("deep"):
         pre_layer = embed
         for i in range(1, len(layer_dim)):
             layer = tf.layers.dense(pre_layer, layer_dim[i], name="layer%d" % i,
                                     activation=tf.nn.relu, kernel_initializer=glorot)
             pre_layer = layer
-        logits = tf.layers.dense(pre_layer, 1, name="logists",
+
+    with tf.variable_scope("concat"):
+        merge_layer = tf.concat([wide, pre_layer], axis=1)
+        logits = tf.layers.dense(merge_layer, 1, name="logists",
                                  kernel_initializer=glorot)
+
     return logits
 
 
