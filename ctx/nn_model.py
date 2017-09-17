@@ -5,16 +5,28 @@
 from common import *
 
 
+def get_data_list():
+    ans = []
+    for d in range(20, 28):
+        prefix = "data/date=%2d/" % d
+        tmp = os.listdir(prefix)
+        tmp = [prefix + _ for _ in tmp]
+        ans += [tmp]
+    return ans
+
+
 def read(num_epochs=100):
-    data_filename = "part-r-00099"  # 160w
+    data_filename = ["part-r-00099"]  # 160w
+    data_filename = get_data_list()
+    print data_filename, len(data_filename)
     filename_queue = tf.train.string_input_producer(
-        [data_filename], num_epochs=num_epochs)
+        data_filename, num_epochs=num_epochs)
     reader = tf.TFRecordReader()
     key, value = reader.read(filename_queue)
 
     batch = tf.train.shuffle_batch(
         [value],
-        batch_size=64,
+        batch_size=128,
         num_threads=32,
         capacity=50000,
         min_after_dequeue=5000,

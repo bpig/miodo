@@ -12,6 +12,8 @@ def dump():
     for d in date:
         cmd = prefix + dirname % d
         print time.ctime(), cmd
+        ret = os.system(cmd)
+        print ret
 
 
 if __name__ == "__main__":
