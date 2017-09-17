@@ -97,7 +97,10 @@ def train():
             while not coord.should_stop():
                 _, loss_value, gs, loss_log = sess.run([opt, loss, global_step, summary])
                 factor = 0.99
-                aa = aa * factor + (1 - factor) * loss_value
+                if aa == 0.0:
+                    aa = loss_value
+                else:
+                    aa = aa * factor + (1 - factor) * loss_value
                 print gs, loss_value, aa
                 writer.add_summary(loss_log, gs)
                 if gs % 10000 == 0:
