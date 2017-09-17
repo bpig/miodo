@@ -86,9 +86,6 @@ def train_op(loss):
         cf_float("lr_decay_rate"), staircase=True)
 
     vars = tf.trainable_variables()
-    for var in vars:
-        print(var, var.name, var.get_shape())
-
     wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
     print 'trainable_wide_var', len(wide_vars)
     for var in wide_vars:
@@ -99,7 +96,7 @@ def train_op(loss):
     for var in deep_vars:
         print var, var.name, var.get_shape()
 
-    ftrl = tf.train.FtrlOptimizer(0.1, l1_regularization_strength=1.0)
+    ftrl = tf.train.FtrlOptimizer(cf_float("ftrl_lr"), l1_regularization_strength=1.0)
     wide_opt = ftrl.minimize(loss, var_list=wide_vars)
 
     adam = tf.train.AdamOptimizer(learning_rate=lr)
