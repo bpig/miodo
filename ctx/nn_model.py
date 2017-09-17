@@ -32,13 +32,12 @@ def inference(kv):
     layers = [128, 128, 128]
     glorot = tf.uniform_unit_scaling_initializer
 
-    with tf.device("/cpu:0"):
-        fea = tf.sparse_merge(kv['fid'], kv['fval'], sparse_dim)
-        weights = tf.get_variable("weights", [sparse_dim, layers[0]],
-                                  initializer=glorot)
-        biases = tf.get_variable("biases", [layers[0]], initializer=tf.zeros_initializer)
+    fea = tf.sparse_merge(kv['fid'], kv['fval'], sparse_dim)
+    weights = tf.get_variable("weights", [sparse_dim, layers[0]],
+                              initializer=glorot)
+    biases = tf.get_variable("biases", [layers[0]], initializer=tf.zeros_initializer)
 
-        embed = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + biases
+    embed = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + biases
 
     l1 = tf.layers.dense(embed, layers[1], name="l1", activation=tf.nn.relu,
                          kernel_initializer=glorot)
@@ -67,12 +66,11 @@ def train_op(loss):
 
     ema = tf.train.ExponentialMovingAverage(0.99, global_step)
     avg = ema.apply(tf.trainable_variables())
-    return tf.group([opt, avg])
+    return tf.group(*[opt, avg])
 
 
 def train():
-    with tf.device("/cpu:0"):
-        kv = read()
+    kv = read()
     logits = inference(kv)
     loss = loss_op(kv, logits)
     opt = train_op(loss)
