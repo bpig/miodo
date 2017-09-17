@@ -85,13 +85,15 @@ def train_op(loss):
 
 
 def get_model_path():
-    model_path = "model/%s/" % sys.argv[1]
+    model_path = "model/%s/" % sys.argv[1][:-5]
     os.system("mkdir -p %s" % model_path)
     return model_path + "ctx.ckpt"
 
 
 def get_log_path():
-    return sys.argv[1] + "_log/"
+    if not os.path.exists("log"):
+        os.mkdir("log")
+    return "log/%s_log" % sys.argv[1][:-5]
 
 
 def train():

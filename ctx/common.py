@@ -11,7 +11,7 @@ from ConfigParser import ConfigParser
 
 def read_config(filename):
     cf = ConfigParser()
-    cf.read(filename)
+    cf.read("conf/" + filename)
     section = "basic"
     cf_str = partial(cf.get, section)
     cf_float = partial(cf.getfloat, section)
