@@ -72,7 +72,7 @@ def train_op(loss):
     global_step = tf.train.create_global_step()
     lr = tf.train.exponential_decay(0.001,
                                     global_step,
-                                    3000,
+                                    30000,
                                     0.5,
                                     staircase=True)
 
