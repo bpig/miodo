@@ -32,20 +32,20 @@ def train():
     sparse_dim = 27088502
     layers = [128, 128, 128]
     fea = tf.sparse_merge(kv['fid'], kv['fval'], sparse_dim)
-
+    glorot = tf.glorot_uniform_initializer
     weights = tf.get_variable("weights", [sparse_dim, layers[0]],
-                              initializer=tf.glorot_uniform_initializer())
+                              initializer=glorot)
     biases = tf.get_variable("biases", [layers[0]], initializer=tf.zeros_initializer)
 
     embed = tf.nn.embedding_lookup_sparse(
         weights, fea, None, combiner="sum") + biases
 
     l1 = tf.layers.dense(embed, layers[1], name="l1", activation=tf.nn.relu,
-                         kernel_initializer=tf.glorot_uniform_initializer())
+                         kernel_initializer=glorot)
     l2 = tf.layers.dense(l1, layers[2], name="l2", activation=tf.nn.relu,
-                         kernel_initializer=tf.glorot_uniform_initializer())
+                         kernel_initializer=glorot)
     logits = tf.layers.dense(l2, 1, name="logists",
-                             kernel_initializer=tf.glorot_uniform_initializer())
+                             kernel_initializer=glorot)
 
     xe = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=tf.to_float(kv['label']))
     loss = tf.reduce_mean(xe)
