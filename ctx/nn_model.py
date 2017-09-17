@@ -126,7 +126,7 @@ def train():
                     aa = aa * factor + (1 - factor) * loss_value
                 print gs, loss_value, aa
                 writer.add_summary(loss_log, gs)
-                if gs % 10000 == 0:
+                if gs % cf_int("lr_decay_step") == 0:
                     saver.save(sess, model_path, global_step=global_step)
         except tf.errors.OutOfRangeError:
             print "up to epoch limits"
