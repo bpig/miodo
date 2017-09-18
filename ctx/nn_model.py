@@ -17,11 +17,13 @@ def get_data_list():
 
 
 def read():
-    data_filename = get_data_list()
-    assert len(data_filename)
-    print len(data_filename)
+    data_file = cf_str("data_file")
+    if not data_file:
+        data_file = get_data_list()
+    assert len(data_file)
+    print len(data_file)
     filename_queue = tf.train.string_input_producer(
-        data_filename, num_epochs=cf_int("num_epochs"))
+        data_file, num_epochs=cf_int("num_epochs"))
     reader = tf.TFRecordReader()
     key, value = reader.read(filename_queue)
 
