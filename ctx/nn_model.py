@@ -132,7 +132,7 @@ def train_op(loss):
 def get_model_path():
     model_path = "model/%s/" % sys.argv[1][:-5]
     os.system("mkdir -p %s" % model_path)
-    return model_path + "ctx.ckpt"
+    return model_path + "ctx.ckpt-335"
 
 
 def get_log_path():
@@ -156,6 +156,7 @@ def pred():
 
     fout = open("pred_test", "w")
     with tf.Session() as sess:
+        tf.local_variables_initializer().run()
         saver.restore(sess, model_path)
 
         coord = tf.train.Coordinator()
@@ -165,7 +166,7 @@ def pred():
             while not coord.should_stop():
                 p, l = sess.run([prob, kv['label']])
                 p = p.reshape(-1)
-                l = l.reshpae(-1)
+                l = l.reshape(-1)
                 for v1, v2 in zip(l, p):
                     print >> fout, v1, v2
         except tf.errors.OutOfRangeError:
@@ -220,4 +221,5 @@ def train():
 
 
 if __name__ == "__main__":
-    train()
+    # train()
+    pred()

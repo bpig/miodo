@@ -1,3 +1,6 @@
 part*
 *.pyc
 *.tf
+log
+model
+pred_test
