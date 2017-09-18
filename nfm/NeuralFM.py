@@ -342,18 +342,23 @@ class NeuralFM(BaseEstimator, TransformerMixin):
                     return True
         return False
 
+    def softmax(self, x):
+        """Compute softmax values for each sets of scores in x."""
+        return np.exp(x) / np.sum(np.exp(x), axis=0)
+
     def evaluate(self, data, name):  # evaluate the results for an input set
         num_example = len(data['Y'])
         feed_dict = {self.train_features: data['X'],
-                     # self.train_labels: [[y] for y in data['Y']],
                      self.train_labels: data['Y'],
                      self.dropout_keep: self.no_dropout, self.train_phase: False}
         predictions = self.sess.run(self.out, feed_dict=feed_dict)
         y_pred = np.reshape(predictions, (num_example,))
         y_true = np.reshape(data['Y'], (num_example,))
-        print y_true[:5]
-        print y_pred[:5]
-        print name, roc_auc_score(y_true, y_pred)
+        # y_true[y_true == -1] = 0
+        # y_pred = self.softmax(y_pred)
+        # print zip(y_true, y_pred)[:4]
+        #
+        # print name, roc_auc_score(y_true, y_pred)
         if self.loss_type == 'square_loss':
             predictions_bounded = np.maximum(y_pred, np.ones(num_example) * min(y_true))  # bound the lower values
             predictions_bounded = np.minimum(predictions_bounded,
