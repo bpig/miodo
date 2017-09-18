@@ -7,7 +7,7 @@ import sys
 import tensorflow as tf
 from functools import partial
 from ConfigParser import ConfigParser
-
+import numpy as np
 
 def read_config(filename):
     cf = ConfigParser()
