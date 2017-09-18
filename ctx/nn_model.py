@@ -20,6 +20,8 @@ def read():
     data_file = cf_str("data_file")
     if not data_file:
         data_file = get_data_list()
+    else:
+        data_file = eval(data_file)
     assert len(data_file)
     print len(data_file)
     filename_queue = tf.train.string_input_producer(
