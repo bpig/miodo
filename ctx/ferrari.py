@@ -84,7 +84,7 @@ def pred(cf, model, env, data):
 
 def train(cf, model, env, data):
     kv = data.read()
-    valid_label, valid_fid = data.valid_data()
+    valid_label, valid_fid = data.read_valid()
     logits = model.inference(kv['fid'])
     loss = model.loss_op(kv['label'], logits)
 
