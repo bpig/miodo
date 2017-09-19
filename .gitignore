@@ -5,3 +5,5 @@ log
 model
 pred_test
 data
+base
+dim

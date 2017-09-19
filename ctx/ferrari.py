@@ -5,6 +5,7 @@
 from common import *
 from nfm import *
 from dnn import *
+from multi_dnn import *
 from data import *
 
 

@@ -45,15 +45,6 @@ class NFM(NET):
         emb_bias = tf.nn.embedding_lookup_sparse(weights['emb_bias'], fea, None, combiner="mean")
         return fm + emb_bias
 
-    def get_weight_size(self):
-        total_parameters = 0
-        for variable in self.weights.values():
-            shape = variable.get_shape()  # shape is an array of tf.Dimension
-            variable_parameters = 1
-            for dim in shape:
-                variable_parameters *= dim.value
-            total_parameters += variable_parameters
-        print "#params: %d" % total_parameters
 
     def batch_norm_layer(self, x, train_phase, scope_bn):
         # tf.layers.batch_normalization()

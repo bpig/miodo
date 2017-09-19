@@ -51,7 +51,7 @@ class Data(object):
         batch = tf.train.shuffle_batch(
             [value],
             batch_size=batch_size,
-            num_threads=8,
+            num_threads=32,
             capacity=50000,
             min_after_dequeue=5000,
             allow_smaller_final_batch=False

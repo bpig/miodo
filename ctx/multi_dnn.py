@@ -33,7 +33,7 @@ sparse_table = {
 
 
 class MultiDNN(NET):
-    features_map = {
+    feature_map = {
         'label': tf.FixedLenFeature([1], tf.int64),
         "adid_id": tf.VarLenFeature(tf.int64),
         "adtz_id": tf.VarLenFeature(tf.int64),
@@ -63,12 +63,12 @@ class MultiDNN(NET):
         'iid': tf.FixedLenFeature(1, tf.int64),
     }
 
-    def gen_embed(self, fea, sparse_dim):
+    def gen_embed(self, fea, sparse_dim, name):
         embed_dim = 8
         glorot = tf.uniform_unit_scaling_initializer
-        weights = tf.get_variable("weights", [sparse_dim, embed_dim],
+        weights = tf.get_variable("w_" + name, [sparse_dim, embed_dim],
                                   initializer=glorot)
-        biases = tf.get_variable("biases", [embed_dim], initializer=tf.zeros_initializer)
+        biases = tf.get_variable("b" + name, [embed_dim], initializer=tf.zeros_initializer)
         return tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="mean") + biases
 
     def inference(self, fea):
@@ -77,8 +77,9 @@ class MultiDNN(NET):
         embeds = []
         with tf.variable_scope("embed"):
             for key in sparse_table.keys():
-                embed = self.gen_embed(fea[key + "_id"], sparse_table[key])
+                embed = self.gen_embed(fea[key + "_id"], sparse_table[key], key)
                 embeds += [embed]
+
         embed = tf.concat(embeds, axis=1)
 
         with tf.variable_scope("deep"):

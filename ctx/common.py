@@ -43,6 +43,17 @@ class NET(object):
         self.lr_decay_step = cf.getint(section, "lr_decay_step")
         self.lr_decay_rate = cf.getfloat(section, "lr_decay_rate")
 
+    def get_weight_size(self):
+        total_parameters = 0
+        for variable in self.weights.values():
+            shape = variable.get_shape()  # shape is an array of tf.Dimension
+            variable_parameters = 1
+            for dim in shape:
+                variable_parameters *= dim.value
+            total_parameters += variable_parameters
+            print variable.name, shape
+        print "#params: %d" % total_parameters
+        
     def train_op(self, loss):
         global_step = tf.train.get_or_create_global_step()
         lr = tf.train.exponential_decay(
@@ -50,6 +61,8 @@ class NET(object):
             self.lr_decay_rate, staircase=True)
 
         vars = tf.trainable_variables()
+        # for var in vars:
+        #     print var.name, var.shape
         wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
         deep_vars = list(set(vars) - set(wide_vars))
 
