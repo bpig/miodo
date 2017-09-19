@@ -7,7 +7,7 @@ from common import *
 class DNN(NET):
     def inference(self, fea):
         glorot = tf.uniform_unit_scaling_initializer
-
+        fea = fea['fid']
         # with tf.variable_scope("wide"):
         #     weights = tf.get_variable(
         #         "weights", [sparse_dim, 1], initializer=glorot)

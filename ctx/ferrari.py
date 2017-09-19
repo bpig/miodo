@@ -57,7 +57,7 @@ def restore_model(sess, model_path, use_ema=True):
 
 def pred(cf, model, env, data):
     kv = data.read()
-    logits = model.inference(kv['fid'], keep_prob=cf.getfloat("train", "keep_prob"))
+    logits = model.inference(kv, keep_prob=cf.getfloat("train", "keep_prob"))
 
     prob = tf.sigmoid(logits)
 
@@ -86,14 +86,14 @@ def train(cf, model, env, data):
     kv = data.read()
     kv_valid = data.read_valid()
 
-    logits = model.inference(kv['fid'])
+    logits = model.inference(kv)
     loss = model.loss_op(kv['label'], logits)
 
     # summary = tf.summary.scalar("loss", loss)
     opt = model.train_op(loss)
 
     tf.get_variable_scope().reuse_variables()
-    logits = model.inference(kv_valid['fid'])
+    logits = model.inference(kv_valid)
     loss2 = model.loss_op(kv_valid['label'], logits)
 
     global_step = tf.train.get_global_step()

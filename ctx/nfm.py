@@ -7,6 +7,7 @@ from common import *
 
 class NFM(NET):
     def inference(self, fea, keep_prob=0.5):
+        fea = fea['fid']
 
         self._initialize_weights()
         weights = self.weights
