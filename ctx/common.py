@@ -14,15 +14,15 @@ class NET(object):
     def __init__(self, cf):
         section = "net"
         self.random_seed = 1314
-        self.sparse_dim = cf.getint("sparse_dim", section)
-        self.layer_dim = eval(cf.get("layer_dim", section))
+        self.sparse_dim = cf.getint(section, "sparse_dim")
+        self.layer_dim = eval(cf.get(section, "layer_dim"))
         self.batch_norm = False
-        self.hidden_factor = cf.getint("fm_factor", section)
+        self.hidden_factor = cf.getint(section, "fm_factor")
         tf.set_random_seed(self.random_seed)
 
-        self.lr = cf.get_float("lr", section)
-        self.lr_decay_step = cf.getint("lr_decay_step", section)
-        self.lr_decay_rate = cf.getfloat("lr_decay_rate", section)
+        self.lr = cf.get_float(section, "lr")
+        self.lr_decay_step = cf.getint(section, "lr_decay_step")
+        self.lr_decay_rate = cf.getfloat(section, "lr_decay_rate")
 
     def train_op(self, loss):
         global_step = tf.train.get_or_create_global_step()

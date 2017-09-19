@@ -13,16 +13,16 @@ class Data(object):
         else:
             section = "train"
         try:
-            self.data_file = cf.get("data_file", section)
+            self.data_file = cf.get(section, "data_file")
             self.data_file = eval(self.data_file)
         except:
             self.data_file = None
-        self.date_begin = cf.getint("date_begin", section)
-        self.date_end = cf.getint("date_end", section)
-        self.num_epochs = cf.getint("num_epochs", section)
-        self.batch_size = cf.getint("batch_size", section)
+        self.date_begin = cf.getint(section, "date_begin")
+        self.date_end = cf.getint(section, "date_end")
+        self.num_epochs = cf.getint(section, "num_epochs")
+        self.batch_size = cf.getint(section, "batch_size")
         try:
-            self.top_dir = cf.get("top_dir")
+            self.top_dir = cf.get(section, "top_dir")
         except:
             self.top_dir = None
 

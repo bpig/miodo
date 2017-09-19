@@ -19,7 +19,7 @@ class Env(object):
 
         model_path += "ctx.ckpt"
         if is_pred:
-            return model_path + "-" + self.cf.get("pred_model_step", "pred")
+            return model_path + "-" + self.cf.get("pred", "pred_model_step")
         else:
             return model_path
 
@@ -115,7 +115,7 @@ def train(cf, model, env, data):
                 print gs, loss_value, aa
                 print >> loss_writer, gs, loss_value, aa
                 writer.add_summary(loss_log, gs)
-                if gs % cf.getint("lr_decay_step", "train") * 2 == 0:
+                if gs % cf.getint("train", "lr_decay_step") * 2 == 0:
                     saver.save(sess, model_path, global_step=global_step)
         except tf.errors.OutOfRangeError:
             print "up to epoch limits"
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     conf_file = sys.argv[1]
     cf = ConfigParser()
     cf.read("conf/" + conf_file)
-    Model = cf.get("model", "net")
+    Model = cf.get("net", "model")
     model = Model(cf)
     env = Env(cf, conf_file)
     data = Data(cf, is_pred)
