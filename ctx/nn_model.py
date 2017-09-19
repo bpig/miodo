@@ -3,8 +3,14 @@
 # 286287737@qq.com
 
 from common import *
+from nfm import *
 
-cf_str, cf_float, cf_int = read_config(sys.argv[1])
+conf_file = sys.argv[1]
+if len(sys.argv) > 2:
+    is_pred = True
+else:
+    is_pred = False
+cf_str, cf_float, cf_int = read_config(conf_file)
 
 
 def get_data_list():
@@ -42,26 +48,8 @@ def read():
         'label': tf.FixedLenFeature([1], tf.int64),
         'fid': tf.VarLenFeature(tf.int64),
         'fval': tf.VarLenFeature(tf.int64),
+        'iid': tf.FixedLenFeature(1, tf.int64),
     })
-
-
-def embedding_lookup(params,
-                     sp_ids,
-                     sp_weights=None,
-                     partition_strategy="mod",
-                     name=None):
-    if not isinstance(params, list):
-        params = [params]
-    with tf.name_scope(name, "embedding_lookup_sparse",
-                       params + [sp_ids]) as name:
-        segment_ids = sp_ids.indices[:, 0]
-        if segment_ids.dtype != tf.int32:
-            segment_ids = tf.cast(segment_ids, tf.int32)
-
-        ids = sp_ids.values
-        ids, idx = tf.unique(ids)
-
-        embeddings = tf.nn.embedding_lookup(params, ids, partition_strategy="mod", max_norm=None)
 
 
 def inference(kv):
@@ -95,9 +83,7 @@ def inference(kv):
             pre_layer = layer
 
     with tf.variable_scope("concat"):
-        # merge = tf.concat([wide, pre_layer], 1)
-        merge = pre_layer
-        logits = tf.layers.dense(merge, 1, name="logists",
+        logits = tf.layers.dense(pre_layer, 1, name="logists",
                                  kernel_initializer=glorot)
 
     return logits
@@ -130,20 +116,34 @@ def train_op(loss):
 
 
 def get_model_path():
-    model_path = "model/%s/" % sys.argv[1][:-5]
+    model_path = "model/%s/" % conf_file[:-5]
     os.system("mkdir -p %s" % model_path)
-    return model_path + "ctx.ckpt-335"
+
+    model_path += "ctx.ckpt"
+    if is_pred:
+        return model_path + "-" + cf_str("pred_model_step")
+    else:
+        return model_path
 
 
 def get_log_path():
     if not os.path.exists("log"):
         os.mkdir("log")
-    log_path = "log/%s_log" % sys.argv[1][:-5]
+    log_path = "log/%s_log" % conf_file[:-5]
     os.system("mkdir -p %s" % log_path)
     cmd = "cp ./nn_model.py %s" % log_path
     os.system(cmd)
-    fout = open(log_path + "/loss_log", "w")
+    if not is_pred:
+        fout = open(log_path + "/loss_log", "w")
+    else:
+        fout = open(log_path + "/pred_result", "w")
     return log_path, fout
+
+
+def dump_pred(ans, fout):
+    prob, label, iid = [_.reshape(-1) for _ in ans]
+    for v1, v2, v3 in zip(prob, label, iid):
+        print >> fout, v1, v2, v3
 
 
 def pred():
@@ -153,8 +153,8 @@ def pred():
 
     saver = tf.train.Saver()
     model_path = get_model_path()
+    _, fout = get_log_path()
 
-    fout = open("pred_test", "w")
     with tf.Session() as sess:
         tf.local_variables_initializer().run()
         saver.restore(sess, model_path)
@@ -164,11 +164,8 @@ def pred():
 
         try:
             while not coord.should_stop():
-                p, l = sess.run([prob, kv['label']])
-                p = p.reshape(-1)
-                l = l.reshape(-1)
-                for v1, v2 in zip(l, p):
-                    print >> fout, v1, v2
+                ans = sess.run([prob, kv['label'], kv['iid']])
+                dump_pred(ans, fout)
         except tf.errors.OutOfRangeError:
             print "up to epoch limits"
         finally:
@@ -178,8 +175,9 @@ def pred():
 
 def train():
     kv = read()
-    logits = inference(kv)
-    # logits = nfm.inference(kv)
+    # logits = inference(kv)
+    nfm = NFM(conf_file)
+    logits = nfm.inference(kv)
     loss = loss_op(kv, logits)
 
     summary = tf.summary.scalar("loss", loss)
@@ -221,5 +219,7 @@ def train():
 
 
 if __name__ == "__main__":
-    # train()
-    pred()
+    if not is_pred:
+        train()
+    else:
+        pred()

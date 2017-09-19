@@ -17,27 +17,34 @@ class NFM(object):
     def inference(self, kv):
         tf.set_random_seed(self.random_seed)
 
-        self.fea = tf.sparse_merge(kv['fid'], kv['fval'], self.sparse_dim)
+        fea = kv['fid']
+        weights = self.weights
 
         self._initialize_weights()
 
-        embeds = tf.nn.embedding_lookup(self.weights['emb_weight'], self.fea)
-        self.mean_embeds = tf.reduce_sum(embeds, 1)
+        embed = tf.nn.embedding_lookup_sparse(weights['emb_weight'], fea, None, combiner='mean')
+        square_last_embed = tf.square(embed)
 
-        self.square_last_embeds = tf.square(self.mean_embeds)
+        segment_ids = fea.indices[:, 0]
+        if segment_ids.dtype != tf.int32:
+            segment_ids = tf.cast(segment_ids, tf.int32)
 
-        self.square_embeds = tf.square(embeds)
-        self.mean_last_embeds = tf.reduce_sum(self.square_embeds, 1)
+        ids = fea.values
+        ids, idx = tf.unique(ids)
 
-        self.FM = 0.5 * tf.subtract(self.square_last_embeds, self.mean_last_embeds)
+        embed = tf.nn.embedding_lookup(weights['emb_weight'], ids)
+        embed = tf.square(embed)
+        mean_last_embed = tf.sparse_segment_mean(embed, idx, segment_ids)
+
+        fm = 0.5 * tf.subtract(square_last_embed, mean_last_embed)
 
         for i in range(0, len(self.layer_dim)):
-            self.FM = tf.add(tf.matmul(self.FM, self.weights['l%d' % i]), self.weights['b%d' % i])
-            self.FM = tf.nn.relu(self.FM)
+            fm = tf.add(tf.matmul(fm, weights['l%d' % i]), weights['b%d' % i])
+            fm = tf.nn.relu(fm)
 
-        self.FM = tf.matmul(self.FM, self.weights['pred']) + self.weights['bias']
-        self.emb_bias = tf.nn.embedding_lookup_sparse(self.weights['emb_bias'], self.fea, None, combiner="mean")
-        self.out = self.FM + self.emb_bias
+        fm = tf.matmul(fm, weights['pred']) + weights['bias']
+        emb_bias = tf.nn.embedding_lookup_sparse(weights['emb_bias'], fea, None, combiner="mean")
+        return fm + emb_bias
 
     def get_weight_size(self):
         total_parameters = 0
