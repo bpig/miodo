@@ -62,5 +62,24 @@ class Data(object):
     def read_valid(self, feature_map):
         return self._read_by_queue(self.valid_data, None, self.batch_size, feature_map)
 
-    if __name__ == "__main__":
-        pass
+
+if __name__ == "__main__":
+    conf_file = sys.argv[1]
+    cf = ConfigParser()
+    cf.read("conf/" + conf_file)
+
+    data = Data(cf, False)
+    from multi_dnn import *
+
+    fea = data.read(MultiDNN.feature_map)
+    with tf.Session() as sess:
+        tf.local_variables_initializer().run()
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(sess, coord)
+
+        while not coord.should_stop():
+            a = sess.run(fea.values())
+            for i in a:
+                print i.shape
+
+
