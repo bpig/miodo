@@ -28,7 +28,7 @@ sparse_table = {
     "usat": 277,
     "coip": 748827,
     "coav": 1097,
-    # "dense": 49,
+    "dense": 49,
 }
 
 
@@ -63,17 +63,17 @@ class MultiDNN(NET):
         'iid': tf.FixedLenFeature(1, tf.int64),
     }
 
-    def gen_embed(self, fea, sparse_dim, name):
-        embed_dim = 8
+    def gen_embed(self, fea, sparse_dim, name, embed_dim=8, commbiner="mean"):
         glorot = tf.uniform_unit_scaling_initializer
         weights = tf.get_variable("w_" + name, [sparse_dim, embed_dim],
                                   initializer=glorot)
         biases = tf.get_variable("b" + name, [embed_dim], initializer=tf.zeros_initializer)
-        return tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="mean") + biases
+        return tf.nn.embedding_lookup_sparse(weights, fea, None, combiner=commbiner) + biases
 
     def inference(self, fea):
         glorot = tf.uniform_unit_scaling_initializer
-        dense = tf.sparse_merge(fea['dense_id'], fea['dense_val'], 50)
+
+        dense = self.gen_embed(fea['dense_id'], 50, "dense_wide", 1, "sum")
         embeds = []
         with tf.variable_scope("embed"):
             for key in sparse_table.keys():
@@ -92,6 +92,7 @@ class MultiDNN(NET):
         with tf.variable_scope("concat"):
             logits = tf.layers.dense(pre_layer, 1, name="logists",
                                      kernel_initializer=glorot)
+            logits = logits + dense
 
         return logits
 
