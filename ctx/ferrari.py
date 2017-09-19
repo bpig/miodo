@@ -89,21 +89,20 @@ def train(cf, model, env, data):
     logits = model.inference(kv['fid'])
     loss = model.loss_op(kv['label'], logits)
 
-    summary = tf.summary.scalar("loss", loss)
+    # summary = tf.summary.scalar("loss", loss)
     opt = model.train_op(loss)
 
     tf.get_variable_scope().reuse_variables()
     logits = model.inference(kv_valid['fid'])
     loss2 = model.loss_op(kv_valid['label'], logits)
-    
+
     global_step = tf.train.get_global_step()
     saver = tf.train.Saver()
     model_path = env.get_model_path()
     log_path, loss_writer = env.get_log_path()
-    writer = tf.summary.FileWriter(logdir=log_path)
+    # writer = tf.summary.FileWriter(logdir=log_path)
 
-    aa = 0.0
-    bb = 0.0
+    log = TrainLog(loss_writer)
     with tf.Session() as sess:
         tf.global_variables_initializer().run()
         tf.local_variables_initializer().run()
@@ -114,15 +113,7 @@ def train(cf, model, env, data):
         try:
             while not coord.should_stop():
                 _, loss_value, gs, loss_valid = sess.run([opt, loss, global_step, loss2])
-                factor = 0.99
-                if aa == 0.0:
-                    aa = loss_value
-                    bb = loss_valid
-                else:
-                    aa = aa * factor + (1 - factor) * loss_value
-                    bb = bb * factor + (1 - factor) * loss_valid
-                print gs, loss_value, aa, bb
-                print >> loss_writer, gs, loss_value, aa, bb
+                log.run(gs, loss_value, loss_valid)
                 if gs % cf.getint("train", "dump_step") == 0:
                     saver.save(sess, model_path, global_step=global_step)
         except tf.errors.OutOfRangeError:

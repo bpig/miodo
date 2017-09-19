@@ -10,6 +10,25 @@ from ConfigParser import ConfigParser
 import numpy as np
 
 
+class TrainLog():
+    def __init__(self, writer):
+        self.aa = 0.0
+        self.bb = 0.0
+        self.writer = writer
+
+    def run(self, gs, loss, loss_valid):
+        factor = 0.99
+        if self.aa == 0.0:
+            self.aa = loss
+            self.bb = loss_valid
+        else:
+            self.aa = self.aa * factor + (1 - factor) * loss
+            self.bb = self.bb * factor + (1 - factor) * loss_valid
+        out = "%d %.3f %.3f %.3f" % (gs, loss, self.aa, self.bb)
+        print out
+        print >> self.writer, out
+
+
 class NET(object):
     def __init__(self, cf):
         section = "net"
