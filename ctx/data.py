@@ -65,16 +65,7 @@ class Data(object):
         })
 
     def read_valid(self):
-        fea = self._read_by_queue(self.valid_data, 1, 5000)
-        with tf.Session() as sess:
-            tf.local_variables_initializer().run()
-            tf.global_variables_initializer().run()
-            coord = tf.train.Coordinator()
-            threads = tf.train.start_queue_runners(coord=coord, sess=sess)
-            label, fid = sess.run([fea["label"], fea["fid"]])
-            coord.request_stop()
-            coord.join(threads)
-        return label, fid
+        return self._read_by_queue(self.valid_data, self.num_epochs, self.batch_size)
 
     if __name__ == "__main__":
         pass

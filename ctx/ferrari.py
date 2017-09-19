@@ -84,12 +84,7 @@ def pred(cf, model, env, data):
 
 def train(cf, model, env, data):
     kv = data.read()
-    valid_label, valid_fea = data.read_valid()
-
-    fea = tf.placeholder(tf.float32, shape=(None, model.sparse_dim))
-    label = tf.placeholder(tf.float32, shape=(None, 1))
-    logits = model.inference(fea)
-    valid_loss = model.loss_op(label, logits)
+    kv_valid = data.read_valid()
 
     logits = model.inference(kv['fid'])
     loss = model.loss_op(kv['label'], logits)
@@ -124,7 +119,8 @@ def train(cf, model, env, data):
                 writer.add_summary(loss_log, gs)
                 if gs % cf.getint("train", "dump_step") * 2 == 0:
                     saver.save(sess, model_path, global_step=global_step)
-                print "valid", sess.run(valid_loss, feed_dict={fea: valid_fea, label: valid_label})
+                print "valid", sess.run(
+                    loss, feed_dict={kv['fid']: kv_valid['fid'], kv['label']: kv_valid['label']})
         except tf.errors.OutOfRangeError:
             print "up to epoch limits"
         finally:
