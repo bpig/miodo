@@ -21,14 +21,14 @@ class Data(object):
         self.date_end = cf.getint(section, "date_end")
         self.num_epochs = cf.getint(section, "num_epochs")
         self.batch_size = cf.getint(section, "batch_size")
-        try:
+
+        if section == "train":
+            self.valid_data = eval(cf.get(section, "valid_data"))
             self.top_dir = cf.get(section, "top_dir")
-        except:
-            self.top_dir = None
 
     def get_data_list(self):
         if self.data_file:
-            return 
+            return
         ans = []
         for d in range(self.date_begin, self.date_end + 1):
             prefix = "%s/date=%2d/" % (self.top_dir, d)
@@ -40,15 +40,18 @@ class Data(object):
         self.get_data_list()
         assert len(self.data_file)
         print len(self.data_file)
+        return self._read_by_queue(self.data_file, self.num_epochs, self.batch_size)
+
+    def _read_by_queue(self, data_file, num_epochs, batch_size):
         filename_queue = tf.train.string_input_producer(
-            self.data_file, num_epochs=self.num_epochs)
+            data_file, num_epochs=num_epochs)
         reader = tf.TFRecordReader()
         key, value = reader.read(filename_queue)
 
         batch = tf.train.shuffle_batch(
             [value],
-            batch_size=self.batch_size,
-            num_threads=16,
+            batch_size=batch_size,
+            num_threads=8,
             capacity=50000,
             min_after_dequeue=5000,
             allow_smaller_final_batch=False
@@ -61,6 +64,17 @@ class Data(object):
             'iid': tf.FixedLenFeature(1, tf.int64),
         })
 
+    def read_valid(self):
+        fea = self._read_by_queue(self.valid_data, 1, 5000)
+        with tf.Session() as sess:
+            tf.local_variables_initializer().run()
+            tf.global_variables_initializer().run()
+            coord = tf.train.Coordinator()
+            threads = tf.train.start_queue_runners(coord=coord, sess=sess)
+            label, fid = sess.run([fea["label"], fea["fid"]])
+            coord.request_stop()
+            coord.join(threads)
+        return label, fid
 
-if __name__ == "__main__":
-    pass
+    if __name__ == "__main__":
+        pass
