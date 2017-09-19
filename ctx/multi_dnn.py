@@ -77,7 +77,7 @@ class MultiDNN(NET):
         embeds = []
         with tf.variable_scope("embed"):
             for key in sparse_table.keys():
-                embed = self.gen_embed(fea[key + "_id"], sparse_table[key], key)
+                embed = self.gen_embed(fea[key + "_id"], sparse_table[key] + 1, key)
                 embeds += [embed]
 
         embed = tf.concat(embeds, axis=1)

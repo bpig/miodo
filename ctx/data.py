@@ -48,12 +48,12 @@ class Data(object):
         reader = tf.TFRecordReader()
         key, value = reader.read(filename_queue)
 
-        batch = tf.train.shuffle_batch(
+        batch = tf.train.batch(
             [value],
             batch_size=batch_size,
-            num_threads=32,
+            num_threads=1,
             capacity=50000,
-            min_after_dequeue=5000,
+#            min_after_dequeue=5000,
             allow_smaller_final_batch=False
         )
 
@@ -64,6 +64,14 @@ class Data(object):
 
 
 if __name__ == "__main__":
+    def gen_embed(fea, sparse_dim, name):
+        embed_dim = 2
+        glorot = tf.uniform_unit_scaling_initializer
+        weights = tf.get_variable("w_" + name, [sparse_dim, embed_dim],
+                                  initializer=glorot)
+        biases = tf.get_variable("b" + name, [embed_dim], initializer=tf.zeros_initializer)
+        return tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="mean") + biases
+    
     conf_file = sys.argv[1]
     cf = ConfigParser()
     cf.read("conf/" + conf_file)
@@ -72,14 +80,46 @@ if __name__ == "__main__":
     from multi_dnn import *
 
     fea = data.read(MultiDNN.feature_map)
+
+    embeds = []
+    keys = sparse_table.keys()
+    with tf.variable_scope("embed"):
+        for key in keys:
+            v = fea[key + "_id"]
+            embed = gen_embed(fea[key + "_id"], sparse_table[key], key)
+            embeds += [embed, v, fea['iid']]
+            
+    # embed = tf.concat(embeds, axis=1)
+    
     with tf.Session() as sess:
         tf.local_variables_initializer().run()
+        tf.global_variables_initializer().run()
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(sess, coord)
-
+        cc = fea.values()
+        print len(cc)
+        d = 0
+        ss = set()
         while not coord.should_stop():
-            a = sess.run(fea.values())
-            for i in a:
-                print i.shape
+        #with open("hah", "w"):
+            a = sess.run(embeds)
+            d += 1
+            # print d
+            for _ in range(0, len(a), 3):
+                i = a[_]
+                # print i.shape
+                if i.shape[0] != 2:
+                    # print a[_+1]
+                    # print a[_+2]
+
+                    l = len(ss)
+                    ss.add(keys[_/3])
+                    if len(ss) != l:
+                        print keys[_/3]
+
+                    # break
+                # break
+                #print i.indices.shape
+
 
 
