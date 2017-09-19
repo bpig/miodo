@@ -28,7 +28,7 @@ sparse_table = {
     "usat": 277,
     "coip": 748827,
     "coav": 1097,
-    "dense": 49,
+    # "dense": 49,
 }
 
 
@@ -73,13 +73,13 @@ class MultiDNN(NET):
 
     def inference(self, fea):
         glorot = tf.uniform_unit_scaling_initializer
-
+        dense = tf.sparse_merge(fea['dense_id'], fea['dense_val'], 50)
         embeds = []
         with tf.variable_scope("embed"):
             for key in sparse_table.keys():
                 embed = self.gen_embed(fea[key + "_id"], sparse_table[key] + 1, key)
                 embeds += [embed]
-
+        embeds += [dense]
         embed = tf.concat(embeds, axis=1)
 
         with tf.variable_scope("deep"):
