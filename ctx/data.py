@@ -65,7 +65,7 @@ class Data(object):
         })
 
     def read_valid(self):
-        return self._read_by_queue(self.valid_data, self.num_epochs, self.batch_size)
+        return self._read_by_queue(self.valid_data, None, self.batch_size)
 
     if __name__ == "__main__":
         pass
