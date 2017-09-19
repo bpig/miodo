@@ -5,24 +5,11 @@
 from common import *
 
 
-class NFM(object):
-    def __init__(self, conf_file):
-        cf_str, cf_float, cf_int = read_config(conf_file)
-        self.random_seed = 1314
-        self.sparse_dim = cf_int("sparse_dim")
-        self.layer_dim = eval(cf_str("layer_dim"))
-        self.batch_norm = False
-        self.hidden_factor = cf_int("fm_factor")
+class NFM(NET):
+    def inference(self, fea):
 
-    def inference(self, kv):
-        tf.set_random_seed(self.random_seed)
-
-        fea = kv['fid']
         self._initialize_weights()
         weights = self.weights
-
-        embed = tf.nn.embedding_lookup_sparse(weights['emb_weight'], fea, None, combiner='mean')
-        square_last_embed = tf.square(embed)
 
         segment_ids = fea.indices[:, 0]
         if segment_ids.dtype != tf.int32:
@@ -32,8 +19,11 @@ class NFM(object):
         ids, idx = tf.unique(ids)
 
         embed = tf.nn.embedding_lookup(weights['emb_weight'], ids)
-        embed = tf.square(embed)
-        mean_last_embed = tf.sparse_segment_mean(embed, idx, segment_ids)
+
+        square_last_embed = tf.square(
+            tf.sparse_segment_mean(embed, idx, segment_ids))
+        mean_last_embed = tf.sparse_segment_mean(
+            tf.square(embed), idx, segment_ids)
 
         fm = 0.5 * tf.subtract(square_last_embed, mean_last_embed)
 
@@ -80,7 +70,7 @@ class NFM(object):
             all_weights['l%d' % i] = tf.get_variable(
                 name="l%d" % i, initializer=glorot, shape=self.layer_dim[i - 1:i + 1], dtype=tf.float32)
             all_weights['b%d' % i] = tf.get_variable(
-                name="b%d", initializer=tf.zeros_initializer, shape=[self.layer_dim[i]], dtype=tf.float32)
+                name="b%d" % i, initializer=tf.zeros_initializer, shape=[self.layer_dim[i]], dtype=tf.float32)
         all_weights['pred'] = tf.get_variable(
             name="pred", initializer=glorot, shape=[self.layer_dim[-1], 1], dtype=tf.float32)
         all_weights['bias'] = tf.Variable(0.0, name='bias')

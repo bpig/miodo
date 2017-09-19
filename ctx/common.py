@@ -9,17 +9,45 @@ from functools import partial
 from ConfigParser import ConfigParser
 import numpy as np
 
-def read_config(filename):
-    cf = ConfigParser()
-    cf.read("conf/" + filename)
-    section = "basic"
-    cf_str = partial(cf.get, section)
-    cf_float = partial(cf.getfloat, section)
-    cf_int = partial(cf.getint, section)
-    return cf_str, cf_float, cf_int
+
+class NET(object):
+    def __init__(self, cf):
+        section = "net"
+        self.random_seed = 1314
+        self.sparse_dim = cf.getint("sparse_dim", section)
+        self.layer_dim = eval(cf.get("layer_dim", section))
+        self.batch_norm = False
+        self.hidden_factor = cf.getint("fm_factor", section)
+        tf.set_random_seed(self.random_seed)
+
+        self.lr = cf.get_float("lr", section)
+        self.lr_decay_step = cf.getint("lr_decay_step", section)
+        self.lr_decay_rate = cf.getfloat("lr_decay_rate", section)
+
+    def train_op(self, loss):
+        global_step = tf.train.get_or_create_global_step()
+        lr = tf.train.exponential_decay(
+            self.lr, global_step, self.lr_decay_step,
+            self.lr_decay_rate, staircase=True)
+
+        vars = tf.trainable_variables()
+        wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
+        deep_vars = list(set(vars) - set(wide_vars))
+
+        # ftrl = tf.train.FtrlOptimizer(cf_float("ftrl_lr"), l1_regularization_strength=1.0)
+        # wide_opt = ftrl.minimize(loss, var_list=wide_vars)
+
+        adam = tf.train.AdamOptimizer(learning_rate=lr)
+        deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
+
+        ema = tf.train.ExponentialMovingAverage(0.99, global_step)
+        avg = ema.apply(tf.trainable_variables())
+        return tf.group(*[deep_opt, avg])
+
+    def loss_op(labels, logits):
+        xe = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels)
+        return tf.reduce_mean(xe)
 
 
 if __name__ == "__main__":
-    cf_str, _, _ = read_config("1.conf")
-    print cf_str("layer_dim")
     pass
