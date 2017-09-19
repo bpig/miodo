@@ -28,8 +28,8 @@ class Env(object):
             os.mkdir("log")
         log_path = "log/%s_log" % self.conf_file[:-5]
         os.system("mkdir -p %s" % log_path)
-        cmd = "cp ./ferrari.py %s" % log_path
-        os.system(cmd)
+        os.system("cp ./nfm.py %s" % log_path)
+        os.system("cp ./dnn.py %s" % log_path)
         if not is_pred:
             fout = open(log_path + "/loss_log", "w")
         else:
