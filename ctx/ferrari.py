@@ -56,7 +56,7 @@ def restore_model(sess, model_path, use_ema=True):
 
 
 def pred(cf, model, env, data):
-    kv = data.read()
+    kv = data.read(model.feature_map)
     logits = model.inference(kv, keep_prob=cf.getfloat("train", "keep_prob"))
 
     prob = tf.sigmoid(logits)
@@ -83,8 +83,8 @@ def pred(cf, model, env, data):
 
 
 def train(cf, model, env, data):
-    kv = data.read()
-    kv_valid = data.read_valid()
+    kv = data.read(model.feature_map)
+    kv_valid = data.read_valid(model.feature_map)
 
     logits = model.inference(kv)
     loss = model.loss_op(kv['label'], logits)

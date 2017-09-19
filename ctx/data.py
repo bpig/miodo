@@ -36,13 +36,13 @@ class Data(object):
         self.data_file = ans
         return
 
-    def read(self):
+    def read(self, feature_map):
         self.get_data_list()
         assert len(self.data_file)
         print len(self.data_file)
-        return self._read_by_queue(self.data_file, self.num_epochs, self.batch_size)
+        return self._read_by_queue(self.data_file, self.num_epochs, self.batch_size, feature_map)
 
-    def _read_by_queue(self, data_file, num_epochs, batch_size):
+    def _read_by_queue(self, data_file, num_epochs, batch_size, feature_map):
         filename_queue = tf.train.string_input_producer(
             data_file, num_epochs=num_epochs)
         reader = tf.TFRecordReader()
@@ -57,15 +57,10 @@ class Data(object):
             allow_smaller_final_batch=False
         )
 
-        return tf.parse_example(batch, features={
-            'label': tf.FixedLenFeature([1], tf.int64),
-            'fid': tf.VarLenFeature(tf.int64),
-            'fval': tf.VarLenFeature(tf.int64),
-            'iid': tf.FixedLenFeature(1, tf.int64),
-        })
+        return tf.parse_example(batch, features=feature_map)
 
-    def read_valid(self):
-        return self._read_by_queue(self.valid_data, None, self.batch_size)
+    def read_valid(self, feature_map):
+        return self._read_by_queue(self.valid_data, None, self.batch_size, feature_map)
 
     if __name__ == "__main__":
         pass

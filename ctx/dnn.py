@@ -5,6 +5,13 @@ from common import *
 
 
 class DNN(NET):
+    feature_map = {
+        'label': tf.FixedLenFeature([1], tf.int64),
+        'fid': tf.VarLenFeature(tf.int64),
+        'fval': tf.VarLenFeature(tf.int64),
+        'iid': tf.FixedLenFeature(1, tf.int64),
+    }
+
     def inference(self, fea):
         glorot = tf.uniform_unit_scaling_initializer
         fea = fea['fid']
