@@ -18,9 +18,8 @@ class NFM(object):
         tf.set_random_seed(self.random_seed)
 
         fea = kv['fid']
-        weights = self.weights
-
         self._initialize_weights()
+        weights = self.weights
 
         embed = tf.nn.embedding_lookup_sparse(weights['emb_weight'], fea, None, combiner='mean')
         square_last_embed = tf.square(embed)
@@ -81,7 +80,7 @@ class NFM(object):
             all_weights['l%d' % i] = tf.get_variable(
                 name="l%d" % i, initializer=glorot, shape=self.layer_dim[i - 1:i + 1], dtype=tf.float32)
             all_weights['b%d' % i] = tf.get_variable(
-                name="b0", initializer=tf.zeros_initializer, shape=[self.layer_dim[0]], dtype=tf.float32)
+                name="b%d", initializer=tf.zeros_initializer, shape=[self.layer_dim[i]], dtype=tf.float32)
         all_weights['pred'] = tf.get_variable(
             name="pred", initializer=glorot, shape=[self.layer_dim[-1], 1], dtype=tf.float32)
         all_weights['bias'] = tf.Variable(0.0, name='bias')
