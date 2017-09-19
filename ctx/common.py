@@ -20,7 +20,7 @@ class NET(object):
         self.hidden_factor = cf.getint(section, "fm_factor")
         tf.set_random_seed(self.random_seed)
 
-        self.lr = cf.get_float(section, "lr")
+        self.lr = cf.getfloat(section, "lr")
         self.lr_decay_step = cf.getint(section, "lr_decay_step")
         self.lr_decay_rate = cf.getfloat(section, "lr_decay_rate")
 
@@ -44,7 +44,9 @@ class NET(object):
         avg = ema.apply(tf.trainable_variables())
         return tf.group(*[deep_opt, avg])
 
-    def loss_op(labels, logits):
+    def loss_op(self, labels, logits):
+        if labels.dtype != tf.float32:
+            labels = tf.to_float(labels)
         xe = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels)
         return tf.reduce_mean(xe)
 

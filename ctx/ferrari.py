@@ -61,7 +61,7 @@ def pred(cf, model, env, data):
 
     prob = tf.sigmoid(logits)
 
-    model_path = env.get_model_path(cf)
+    model_path = env.get_model_path()
     _, fout = env.get_log_path()
 
     with tf.Session() as sess:
@@ -84,15 +84,15 @@ def pred(cf, model, env, data):
 
 def train(cf, model, env, data):
     kv = data.read()
-    logits = model.inference(kv)
-    loss = model.loss_op(kv, logits)
+    logits = model.inference(kv['fid'])
+    loss = model.loss_op(kv['label'], logits)
 
     summary = tf.summary.scalar("loss", loss)
     opt = model.train_op(loss)
 
     global_step = tf.train.get_global_step()
     saver = tf.train.Saver()
-    model_path = env.get_model_path(cf)
+    model_path = env.get_model_path()
     log_path, loss_writer = env.get_log_path()
     writer = tf.summary.FileWriter(logdir=log_path)
 
@@ -115,7 +115,7 @@ def train(cf, model, env, data):
                 print gs, loss_value, aa
                 print >> loss_writer, gs, loss_value, aa
                 writer.add_summary(loss_log, gs)
-                if gs % cf.getint("train", "lr_decay_step") * 2 == 0:
+                if gs % cf.getint("train", "dump_step") * 2 == 0:
                     saver.save(sess, model_path, global_step=global_step)
         except tf.errors.OutOfRangeError:
             print "up to epoch limits"
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     conf_file = sys.argv[1]
     cf = ConfigParser()
     cf.read("conf/" + conf_file)
-    Model = cf.get("net", "model")
+    Model = eval(cf.get("net", "model"))
     model = Model(cf)
     env = Env(cf, conf_file)
     data = Data(cf, is_pred)

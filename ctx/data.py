@@ -28,19 +28,20 @@ class Data(object):
 
     def get_data_list(self):
         if self.data_file:
-            return self.data_file
+            return 
         ans = []
         for d in range(self.date_begin, self.date_end + 1):
             prefix = "%s/date=%2d/" % (self.top_dir, d)
             ans += [prefix + _ for _ in os.listdir(prefix) if _.startswith("part")]
-        return ans
+        self.data_file = ans
+        return
 
     def read(self):
-        data_file = self.get_data_list()
+        self.get_data_list()
         assert len(self.data_file)
         print len(self.data_file)
         filename_queue = tf.train.string_input_producer(
-            data_file, num_epochs=self.num_epochs)
+            self.data_file, num_epochs=self.num_epochs)
         reader = tf.TFRecordReader()
         key, value = reader.read(filename_queue)
 
