@@ -34,7 +34,7 @@ class NFM(NET):
             tf.square(embed), idx, segment_ids)
 
         fm = 0.5 * tf.subtract(square_last_embed, mean_last_embed)
-        fm = tf.nn.dropout(fm, keep_prob)
+        # fm = tf.nn.dropout(fm, keep_prob)
 
         for i in range(0, len(self.layer_dim)):
             fm = tf.add(tf.matmul(fm, weights['l%d' % i]), weights['b%d' % i])

@@ -69,7 +69,8 @@ class NET(object):
         # ftrl = tf.train.FtrlOptimizer(cf_float("ftrl_lr"), l1_regularization_strength=1.0)
         # wide_opt = ftrl.minimize(loss, var_list=wide_vars)
 
-        adam = tf.train.AdamOptimizer(learning_rate=lr)
+        # adam = tf.train.AdamOptimizer(learning_rate=lr)
+        adam = tf.train.AdagradOptimizer(learning_rate=lr)
         deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
 
         ema = tf.train.ExponentialMovingAverage(0.99, global_step)
@@ -80,7 +81,11 @@ class NET(object):
         if labels.dtype != tf.float32:
             labels = tf.to_float(labels)
         xe = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels)
-        return tf.reduce_mean(xe)
+        xe = tf.reduce_mean(xe)
+        # l2 = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+        # print l2
+        # l2 = tf.reduce_mean(l2)
+        return xe 
 
 
 if __name__ == "__main__":

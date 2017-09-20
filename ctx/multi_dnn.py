@@ -60,36 +60,62 @@ class MultiDNN(NET):
         "coip_id": tf.VarLenFeature(tf.int64),
         "coav_id": tf.VarLenFeature(tf.int64),
         "dense_id": tf.VarLenFeature(tf.int64),
+        "dense_val": tf.VarLenFeature(tf.int64),
         'iid': tf.FixedLenFeature(1, tf.int64),
     }
 
-    def gen_embed(self, fea, sparse_dim, name, embed_dim=32, commbiner="mean"):
+    def gen_embed(self, fea, sparse_dim, name, embed_dim=16, commbiner="mean"):
         # glorot = tf.uniform_unit_scaling_initializer
         glorot = tf.truncated_normal_initializer(stddev=0.02)
         weights = tf.get_variable("w_" + name, [sparse_dim, embed_dim],
                                   initializer=glorot)
         biases = tf.get_variable("b" + name, [embed_dim], initializer=tf.zeros_initializer)
-        return tf.nn.embedding_lookup_sparse(weights, fea, None, combiner=commbiner) + biases
+
+        segment_ids = fea.indices[:, 0]
+        if segment_ids.dtype != tf.int32:
+            segment_ids = tf.cast(segment_ids, tf.int32)
+        
+        ids = fea.values
+        ids, idx = tf.unique(ids)
+
+        embed = tf.nn.embedding_lookup(weights, ids)
+        square_last_embed = tf.square(
+            tf.sparse_segment_mean(embed, idx, segment_ids))
+        mean_last_embed = tf.sparse_segment_mean(
+            tf.square(embed), idx, segment_ids)
+        return 0.5 * tf.subtract(square_last_embed, mean_last_embed) + biases
+        
+        # return tf.nn.embedding_lookup_sparse(weights, fea, None, combiner=commbiner) + biases
 
     def inference(self, fea):
         glorot = tf.truncated_normal_initializer(stddev=0.02)
-
-        dense = tf.sparse_merge(fea['dense_id'], fea['dense_val'], 50, name="sp_merge")
+        dense_dim = 50
+        dense = tf.sparse_merge(fea['dense_id'], fea['dense_val'], dense_dim, name="sp_merge")
         dense = tf.sparse_tensor_to_dense(dense, name="sp_to_dense")
         dense = tf.to_float(dense, "float_dense")
-        embeds = []
-        with tf.variable_scope("embed"):
-            for key in sparse_table.keys():
-                embed = self.gen_embed(fea[key + "_id"], sparse_table[key] + 1, key)
-                embeds += [embed]
-        embeds += [dense]
-        embed = tf.concat(embeds, axis=1)
 
+        embeds = []
+        total_dim = 0
+        with tf.variable_scope("embed"):
+            embed_dim = 32
+            for key in sparse_table.keys():
+                embed = self.gen_embed(fea[key + "_id"], sparse_table[key] + 1, key, embed_dim)
+                total_dim += embed_dim
+                embeds += [embed]
+            embeds += [dense]
+            embed = tf.concat(embeds, axis=1)
+            total_dim += dense_dim
+            
         with tf.variable_scope("deep"):
-            pre_layer = embed
-            for i in range(len(self.layer_dim)):
+            w = tf.get_variable(name="w0", shape=(total_dim, self.layer_dim[0]), initializer=glorot)
+            b = tf.get_variable(name="b0", shape=(self.layer_dim[0]), initializer=tf.zeros_initializer)
+            pre_layer = tf.matmul(embed, w) + b
+            pre_layer = tf.nn.relu(pre_layer)
+            def reg(x):
+                return 0.1 * tf.nn.l2_loss(x)
+            for i in range(1, len(self.layer_dim)):
                 layer = tf.layers.dense(pre_layer, self.layer_dim[i], name="layer%d" % i,
-                                        activation=tf.nn.elu, kernel_initializer=glorot)
+                                        activation=tf.nn.relu, kernel_initializer=glorot)
                 pre_layer = layer
 
         with tf.variable_scope("concat"):
