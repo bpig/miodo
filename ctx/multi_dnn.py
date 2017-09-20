@@ -28,7 +28,7 @@ sparse_table = {
     "usat": 277,
     "coip": 748827,
     "coav": 1097,
-    "dense": 49,
+    #    "dense": 49,
 }
 
 
@@ -63,17 +63,20 @@ class MultiDNN(NET):
         'iid': tf.FixedLenFeature(1, tf.int64),
     }
 
-    def gen_embed(self, fea, sparse_dim, name, embed_dim=8, commbiner="mean"):
-        glorot = tf.uniform_unit_scaling_initializer
+    def gen_embed(self, fea, sparse_dim, name, embed_dim=32, commbiner="mean"):
+        # glorot = tf.uniform_unit_scaling_initializer
+        glorot = tf.truncated_normal_initializer(stddev=0.02)
         weights = tf.get_variable("w_" + name, [sparse_dim, embed_dim],
                                   initializer=glorot)
         biases = tf.get_variable("b" + name, [embed_dim], initializer=tf.zeros_initializer)
         return tf.nn.embedding_lookup_sparse(weights, fea, None, combiner=commbiner) + biases
 
     def inference(self, fea):
-        glorot = tf.uniform_unit_scaling_initializer
+        glorot = tf.truncated_normal_initializer(stddev=0.02)
 
-        dense = self.gen_embed(fea['dense_id'], 50, "dense_wide", 1, "sum")
+        dense = tf.sparse_merge(fea['dense_id'], fea['dense_val'], 50, name="sp_merge")
+        dense = tf.sparse_tensor_to_dense(dense, name="sp_to_dense")
+        dense = tf.to_float(dense, "float_dense")
         embeds = []
         with tf.variable_scope("embed"):
             for key in sparse_table.keys():

@@ -24,7 +24,8 @@ class Data(object):
 
         if section == "train":
             self.valid_data = eval(cf.get(section, "valid_data"))
-            self.top_dir = cf.get(section, "top_dir")
+
+        self.top_dir = cf.get(section, "top_dir")
 
     def get_data_list(self):
         if self.data_file:
@@ -53,7 +54,7 @@ class Data(object):
             batch_size=batch_size,
             num_threads=1,
             capacity=50000,
-#            min_after_dequeue=5000,
+            #            min_after_dequeue=5000,
             allow_smaller_final_batch=False
         )
 
@@ -71,7 +72,8 @@ if __name__ == "__main__":
                                   initializer=glorot)
         biases = tf.get_variable("b" + name, [embed_dim], initializer=tf.zeros_initializer)
         return tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="mean") + biases
-    
+
+
     conf_file = sys.argv[1]
     cf = ConfigParser()
     cf.read("conf/" + conf_file)
@@ -88,9 +90,9 @@ if __name__ == "__main__":
             v = fea[key + "_id"]
             embed = gen_embed(fea[key + "_id"], sparse_table[key], key)
             embeds += [embed, v, fea['iid']]
-            
+
     # embed = tf.concat(embeds, axis=1)
-    
+
     with tf.Session() as sess:
         tf.local_variables_initializer().run()
         tf.global_variables_initializer().run()
@@ -101,7 +103,7 @@ if __name__ == "__main__":
         d = 0
         ss = set()
         while not coord.should_stop():
-        #with open("hah", "w"):
+            # with open("hah", "w"):
             a = sess.run(embeds)
             d += 1
             # print d
@@ -113,13 +115,10 @@ if __name__ == "__main__":
                     # print a[_+2]
 
                     l = len(ss)
-                    ss.add(keys[_/3])
+                    ss.add(keys[_ / 3])
                     if len(ss) != l:
-                        print keys[_/3]
+                        print keys[_ / 3]
 
-                    # break
-                # break
-                #print i.indices.shape
-
-
-
+                        # break
+                        # break
+                        # print i.indices.shape
