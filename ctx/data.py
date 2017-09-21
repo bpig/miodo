@@ -31,7 +31,7 @@ class Data(object):
         if self.data_file:
             return
         ans = []
-        for d in range(self.date_begin, self.date_end + 1):
+        for d in reversed(range(self.date_begin, self.date_end + 1)):
             prefix = "%s/date=%2d/" % (self.top_dir, d)
             ans += [prefix + _ for _ in os.listdir(prefix) if _.startswith("part")]
         self.data_file = ans
@@ -55,7 +55,7 @@ class Data(object):
             num_threads=12,
             capacity=100000,
             min_after_dequeue=5000,
-            allow_smaller_final_batch=False
+            allow_smaller_final_batch=True
         )
 
         return tf.parse_example(batch, features=feature_map)

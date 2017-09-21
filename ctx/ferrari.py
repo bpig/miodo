@@ -121,7 +121,7 @@ def train(cf, model, env, data):
                 _, loss_value, gs, loss_valid = sess.run([opt, loss, global_step, loss2])
                 log.run(gs, loss_value, loss_valid)
                 if gs % cf.getint("train", "dump_step") == 0:
-                    saver.save(sess, model_path, global_step=global_step)
+                    saver.save(sess, model_path + "-final")
         except tf.errors.OutOfRangeError:
             print "up to epoch limits"
         finally:
