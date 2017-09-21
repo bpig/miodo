@@ -8,6 +8,7 @@ import tensorflow as tf
 from functools import partial
 from ConfigParser import ConfigParser
 import numpy as np
+import math
 
 
 class TrainLog():
@@ -53,7 +54,7 @@ class NET(object):
             total_parameters += variable_parameters
             print variable.name, shape
         print "#params: %d" % total_parameters
-        
+
     def train_op(self, loss):
         global_step = tf.train.get_or_create_global_step()
         lr = tf.train.exponential_decay(
@@ -85,7 +86,7 @@ class NET(object):
         # l2 = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
         # print l2
         # l2 = tf.reduce_mean(l2)
-        return xe 
+        return xe
 
 
 if __name__ == "__main__":

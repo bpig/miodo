@@ -24,8 +24,9 @@ class DNN(NET):
         #     wide = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + biases
 
         with tf.variable_scope("embed"):
+            init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(float(self.sparse_dim)))
             weights = tf.get_variable("weights", [self.sparse_dim, self.layer_dim[0]],
-                                      initializer=glorot)
+                                      initializer=init)
             biases = tf.get_variable("biases", [self.layer_dim[0]], initializer=tf.zeros_initializer)
             tf.summary.histogram("weights", weights)
             tf.summary.histogram("biases", biases)
@@ -34,8 +35,14 @@ class DNN(NET):
         with tf.variable_scope("deep"):
             pre_layer = embed
             for i in range(1, len(self.layer_dim)):
+                init = tf.truncated_normal(
+                    self.layer_dim[i - 1:i + 1],
+                    stddev=1.0 / math.sqrt(float(self.layer_dim[i - 1])),
+                    dtype=tf.float32,
+                    seed=1314
+                )
                 layer = tf.layers.dense(pre_layer, self.layer_dim[i], name="layer%d" % i,
-                                        activation=tf.nn.relu, kernel_initializer=glorot)
+                                        activation=tf.nn.relu, kernel_initializer=init)
                 pre_layer = layer
                 # tf.summary.histogram("weights", weights)
                 # tf.summary.histogram("biases", biases)
