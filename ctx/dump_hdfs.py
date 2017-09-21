@@ -8,6 +8,7 @@ def dump():
     # dirname = "/user/h_miui_ad/dev/wwxu/exp/tf/rfrecord/base/date=%2d"
     dirname = "/user/h_miui_ad/dev/wwxu/exp/tf/rfrecord/opt5_1/date=%2d"
     date = range(20, 31)
+    date = [26]
     prefix = "hadoop --cluster c3prc-hadoop fs -get "
     top_dir = dirname.split("/")[-2]
     print top_dir

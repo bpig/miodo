@@ -58,7 +58,7 @@ def restore_model(sess, model_path, use_ema=True):
 
 def pred(cf, model, env, data):
     kv = data.read(model.feature_map)
-    logits = model.inference(kv, keep_prob=cf.getfloat("train", "keep_prob"))
+    logits = model.inference(kv)
 
     prob = tf.sigmoid(logits)
 
