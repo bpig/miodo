@@ -35,12 +35,8 @@ class DNN(NET):
         with tf.variable_scope("deep"):
             pre_layer = embed
             for i in range(1, len(self.layer_dim)):
-                init = tf.truncated_normal(
-                    self.layer_dim[i - 1:i + 1],
-                    stddev=1.0 / math.sqrt(float(self.layer_dim[i - 1])),
-                    dtype=tf.float32,
-                    seed=1314
-                )
+                init = tf.truncated_normal_initializer(
+                    stddev=1.0 / math.sqrt(float(self.layer_dim[i - 1])))
                 layer = tf.layers.dense(pre_layer, self.layer_dim[i], name="layer%d" % i,
                                         activation=tf.nn.relu, kernel_initializer=init)
                 pre_layer = layer
