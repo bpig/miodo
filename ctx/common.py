@@ -44,15 +44,14 @@ class NET(object):
         self.lr_decay_step = cf.getint(section, "lr_decay_step")
         self.lr_decay_rate = cf.getfloat(section, "lr_decay_rate")
 
-    def get_weight_size(self):
+    def get_weight_size(self, vars):
         total_parameters = 0
-        for variable in self.weights.values():
-            shape = variable.get_shape()  # shape is an array of tf.Dimension
+        for var in vars:
+            print var.name, var.shape
             variable_parameters = 1
-            for dim in shape:
+            for dim in var.shape:
                 variable_parameters *= dim.value
             total_parameters += variable_parameters
-            print variable.name, shape
         print "#params: %d" % total_parameters
 
     def train_op(self, loss):
@@ -62,16 +61,16 @@ class NET(object):
             self.lr_decay_rate, staircase=True)
 
         vars = tf.trainable_variables()
-        for var in vars:
-            print var.name, var.shape
+        self.get_weight_size(vars)
+
         wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
         deep_vars = list(set(vars) - set(wide_vars))
 
         # ftrl = tf.train.FtrlOptimizer(cf_float("ftrl_lr"), l1_regularization_strength=1.0)
         # wide_opt = ftrl.minimize(loss, var_list=wide_vars)
 
-        # adam = tf.train.AdamOptimizer(learning_rate=lr)
-        adam = tf.train.AdagradOptimizer(learning_rate=lr)
+        adam = tf.train.AdamOptimizer(learning_rate=lr)
+        # adam = tf.train.AdagradOptimizer(learning_rate=lr)
         deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
 
         ema = tf.train.ExponentialMovingAverage(0.99, global_step)
