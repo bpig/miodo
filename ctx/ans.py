@@ -19,6 +19,8 @@ if __name__ == "__main__":
         l = l.strip()
         items = l.split()
         assert len(items) == 3
+        if float(items[1]) <= 0.01:
+            items[1] = "0.01"
         ans += [[int(items[2]), items[1]]]
 
     ans = sorted(ans, key=lambda x:x[0])
