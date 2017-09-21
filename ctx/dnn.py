@@ -13,8 +13,6 @@ class DNN(NET):
     }
 
     def inference(self, fea):
-        glorot = tf.uniform_unit_scaling_initializer(0.1)
-        # glorot = tf.truncated_normal_initializer(stddev=0.01)
         fea = fea['fid']
         # with tf.variable_scope("wide"):
         #     weights = tf.get_variable(
@@ -39,13 +37,16 @@ class DNN(NET):
                     stddev=1.0 / math.sqrt(float(self.layer_dim[i - 1])))
                 layer = tf.layers.dense(pre_layer, self.layer_dim[i], name="layer%d" % i,
                                         activation=tf.nn.relu, kernel_initializer=init)
+                layer = tf.layers.dropout(layer, 0.5)
                 pre_layer = layer
                 # tf.summary.histogram("weights", weights)
                 # tf.summary.histogram("biases", biases)
 
         with tf.variable_scope("concat"):
+            init = tf.truncated_normal_initializer(
+                stddev=1.0 / math.sqrt(float(self.layer_dim[-1])))
             logits = tf.layers.dense(pre_layer, 1, name="logists",
-                                     kernel_initializer=glorot)
+                                     kernel_initializer=init)
 
         return logits
 
