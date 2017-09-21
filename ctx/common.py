@@ -61,8 +61,8 @@ class NET(object):
             self.lr_decay_rate, staircase=True)
 
         vars = tf.trainable_variables()
-        # for var in vars:
-        #     print var.name, var.shape
+        for var in vars:
+            print var.name, var.shape
         wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
         deep_vars = list(set(vars) - set(wide_vars))
 
