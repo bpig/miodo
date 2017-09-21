@@ -1,7 +1,3 @@
-# coding:utf-8
-# 2017/9/16 下午10:36
-# 286287737@qq.com
-
 import tensorflow as tf
 
 train_filename = "train.tf"

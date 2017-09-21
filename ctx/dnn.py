@@ -1,6 +1,5 @@
 # coding:utf-8
-# 2017/9/19 下午1:34
-# 286287737@qq.com
+
 from common import *
 
 

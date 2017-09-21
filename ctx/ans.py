@@ -1,3 +1,4 @@
+# coding:utf-8
 from common import *
 
 if __name__ == "__main__":

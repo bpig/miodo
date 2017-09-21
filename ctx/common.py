@@ -1,6 +1,4 @@
 # coding:utf-8
-# 2017/9/16 下午11:00
-# 286287737@qq.com
 import os
 import time
 import sys
