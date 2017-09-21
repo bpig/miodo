@@ -49,12 +49,12 @@ class Data(object):
         reader = tf.TFRecordReader()
         key, value = reader.read(filename_queue)
 
-        batch = tf.train.batch(
+        batch = tf.train.shuffle_batch(
             [value],
             batch_size=batch_size,
-            num_threads=1,
-            capacity=50000,
-            #            min_after_dequeue=5000,
+            num_threads=12,
+            capacity=100000,
+            min_after_dequeue=5000,
             allow_smaller_final_batch=False
         )
 
