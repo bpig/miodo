@@ -65,7 +65,9 @@ def pred(cf, model, env, data):
     model_path = env.get_model_path()
     _, fout = env.get_log_path()
 
-    with tf.Session() as sess:
+    gpu_options = tf.GPUOptions(allow_growth=True)
+    config = tf.ConfigProto(gpu_options=gpu_options)
+    with tf.Session(config=config) as sess:
         tf.local_variables_initializer().run()
         restore_model(sess, model_path)
 
@@ -104,7 +106,10 @@ def train(cf, model, env, data):
     # writer = tf.summary.FileWriter(logdir=log_path)
 
     log = TrainLog(loss_writer)
-    with tf.Session() as sess:
+
+    gpu_options = tf.GPUOptions(allow_growth=True)
+    config = tf.ConfigProto(gpu_options=gpu_options)
+    with tf.Session(config=config) as sess:
         tf.global_variables_initializer().run()
         tf.local_variables_initializer().run()
 
