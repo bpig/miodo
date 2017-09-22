@@ -56,7 +56,7 @@ def restore_model(sess, model_path, use_ema=True):
 
 def pred(cf, model, env, data):
     kv = data.read(model.feature_map)
-    logits = model.inference(kv, 1.0)
+    logits = model.inference(kv, 0.0)
 
     prob = tf.sigmoid(logits)
 
@@ -87,7 +87,7 @@ def train(cf, model, env, data):
     kv = data.read(model.feature_map)
     kv_valid = data.read_valid(model.feature_map)
 
-    logits = model.inference(kv)
+    logits = model.inference(kv, 0.5)
     loss = model.loss_op(kv['label'], logits)
 
     # summary = tf.summary.scalar("loss", loss)
@@ -119,11 +119,11 @@ def train(cf, model, env, data):
                 _, loss_value, gs, loss_valid = sess.run([opt, loss, global_step, loss2])
                 log.run(gs, loss_value, loss_valid)
                 if gs % cf.getint("train", "dump_step") == 0:
-                    saver.save(sess, model_path + "-final")
+                    saver.save(sess, model_path, global_step=global_step)
         except tf.errors.OutOfRangeError:
             print "up to epoch limits"
         finally:
-            saver.save(sess, model_path, global_step=global_step)
+            saver.save(sess, model_path + "-final")
             coord.request_stop()
             coord.join(threads)
 

@@ -11,7 +11,7 @@ class DNN(NET):
         'iid': tf.FixedLenFeature(1, tf.int64),
     }
 
-    def inference(self, fea, keep_prob=0.5):
+    def inference(self, fea, keep_prob=0.4):
         fea = fea['fid']
         # with tf.variable_scope("wide"):
         #     weights = tf.get_variable(
