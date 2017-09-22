@@ -29,7 +29,7 @@ class DNN(NET):
                 init = tf.truncated_normal_initializer(
                     stddev=1.0 / math.sqrt(float(self.layer_dim[i - 1])))
                 layer = tf.layers.dense(pre_layer, self.layer_dim[i], name="layer%d" % i,
-                                        activation=tf.nn.tanh, kernel_initializer=init)
+                                        activation=tf.nn.elu, kernel_initializer=init)
                 layer = tf.layers.dropout(layer, drop)
                 pre_layer = layer
                 # tf.summary.histogram("weights", weights)
