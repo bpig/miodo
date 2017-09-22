@@ -41,6 +41,7 @@ class NET(object):
         self.lr = cf.getfloat(section, "lr")
         self.lr_decay_step = cf.getint(section, "lr_decay_step")
         self.lr_decay_rate = cf.getfloat(section, "lr_decay_rate")
+        self.model = cf.get(section, "model")
 
     def get_weight_size(self, vars):
         total_parameters = 0
@@ -64,8 +65,11 @@ class NET(object):
         wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
         deep_vars = list(set(vars) - set(wide_vars))
 
-        # ftrl = tf.train.FtrlOptimizer(cf_float("ftrl_lr"), l1_regularization_strength=1.0)
-        # wide_opt = ftrl.minimize(loss, var_list=wide_vars)
+        if self.model == "WDE":
+            ftrl = tf.train.FtrlOptimizer(0.1, l1_regularization_strength=1.0)
+            wide_opt = ftrl.minimize(loss, var_list=wide_vars)
+        else:
+            wide_opt = tf.no_op("wide_placehold")
 
         adam = tf.train.AdamOptimizer(learning_rate=lr)
         # adam = tf.train.AdagradOptimizer(learning_rate=lr)
@@ -73,7 +77,7 @@ class NET(object):
 
         ema = tf.train.ExponentialMovingAverage(0.99, global_step)
         avg = ema.apply(tf.trainable_variables())
-        return tf.group(*[deep_opt, avg])
+        return tf.group(deep_opt, wide_opt, avg)
 
     def loss_op(self, labels, logits):
         if labels.dtype != tf.float32:
