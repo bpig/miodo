@@ -32,12 +32,12 @@ class NFM(NET):
             tf.square(embed), idx, segment_ids)
 
         fm = 0.5 * tf.subtract(square_last_embed, mean_last_embed)
-        fm = tf.nn.dropout(fm, keep_prob)
+        fm = tf.nn.dropout(fm, drop)
 
         for i in range(0, len(self.layer_dim)):
             fm = tf.add(tf.matmul(fm, weights['l%d' % i]), weights['b%d' % i])
             fm = tf.nn.relu(fm)
-            fm = tf.nn.dropout(fm, keep_prob)
+            fm = tf.nn.dropout(fm, drop)
 
         fm = tf.matmul(fm, weights['pred']) + weights['bias']
         emb_bias = tf.nn.embedding_lookup_sparse(weights['emb_bias'], fea, None, combiner="mean")
