@@ -11,12 +11,12 @@ class WDE(NET):
         'iid': tf.FixedLenFeature(1, tf.int64),
     }
 
-    def inference(self, fea, keep_prob=0.4):
+    def inference(self, fea, drop=0.4):
         wide_fea = fea['wide']
         deep_fea = fea['deep']
 
         init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(float(self.sparse_dim)))
-        with tf.variable_scope("wide"):
+        with tf.device("/cpu:0"), tf.variable_scope("wide"):
             weights = tf.get_variable(
                 "weights", [self.sparse_dim, 1], initializer=init)
             biases = tf.get_variable(
@@ -40,10 +40,8 @@ class WDE(NET):
                     stddev=1.0 / math.sqrt(float(self.layer_dim[i - 1])))
                 layer = tf.layers.dense(pre_layer, self.layer_dim[i], name="layer%d" % i,
                                         activation=tf.nn.relu, kernel_initializer=init)
-                layer = tf.layers.dropout(layer, keep_prob)
+                layer = tf.layers.dropout(layer, drop)
                 pre_layer = layer
-                # tf.summary.histogram("weights", weights)
-                # tf.summary.histogram("biases", biases)
 
         with tf.variable_scope("output"):
             init = tf.truncated_normal_initializer(
