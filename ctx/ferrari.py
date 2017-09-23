@@ -20,7 +20,11 @@ class Env(object):
 
         model_path += "ctx.ckpt"
         if is_pred:
-            return model_path + "-" + self.cf.get("pred", "pred_model_step")
+            if len(sys.argv) == 4:
+                idx = sys.argv[3]
+            else:
+                idx = self.cf.get("pred", "pred_model_step")
+            return model_path + "-" + idx
         else:
             return model_path
 

@@ -42,12 +42,13 @@ class AFM(NET):
         att_state = tf.matmul(att_state, weights['att_h'])
         att_sum = tf.reduce_sum(att_state, 1, keep_dims=True)
         att_state = tf.div(att_state, att_sum)
+        att_state = tf.layers.dropout(att_state, drop)
 
         fm = tf.multiply(fm, att_state)
 
         for i in range(0, len(self.layer_dim)):
             fm = tf.add(tf.matmul(fm, weights['l%d' % i]), weights['b%d' % i])
-            fm = tf.nn.relu(fm)
+            fm = self.leaky_relu(fm)
             fm = tf.layers.dropout(fm, drop)
 
         fm = tf.matmul(fm, weights['pred']) + weights['bias']
