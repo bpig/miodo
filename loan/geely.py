@@ -43,6 +43,8 @@ def trans_data():
     print len(data_file)
     data = _read_by_queue(data_file)
     with tf.Session() as sess:
+        tf.global_variables_initializer().run()
+        tf.local_variables_initializer().run()
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord)
 
@@ -82,6 +84,6 @@ def train():
 
 
 if __name__ == "__main__":
-    # load_data()
-    print np.ones(3)
+    trans_data()
+    # print np.ones(3)
     pass
