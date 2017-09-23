@@ -73,6 +73,10 @@ class NET(object):
         wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
         deep_vars = list(set(vars) - set(wide_vars))
 
+        for var in deep_vars:
+            if "kernel" in var.name and "layer" in var.name:
+                tf.add_to_collection("max_norm", var)
+
         if self.model == "WDE":
             ftrl = tf.train.FtrlOptimizer(0.1, l1_regularization_strength=60.0)
             wide_opt = ftrl.minimize(loss, var_list=wide_vars)

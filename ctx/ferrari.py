@@ -121,6 +121,8 @@ def train(cf, model, env, data):
         threads = tf.train.start_queue_runners(coord=coord, sess=sess)
 
         clip_all_weights = tf.get_collection("max_norm")
+        print "max_norm var:"
+        print clip_all_weights
         try:
             while not coord.should_stop():
                 _, loss_value, gs, loss_valid = sess.run(
