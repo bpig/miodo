@@ -3,13 +3,11 @@
 from common import *
 
 
-
-
 class DNN(NET):
     feature_map = {
         'label': tf.FixedLenFeature([1], tf.int64),
         'fid': tf.VarLenFeature(tf.int64),
-        #        'fval': tf.VarLenFeature(tf.int64),
+        # 'fval': tf.VarLenFeature(tf.int64),
         'iid': tf.FixedLenFeature(1, tf.int64),
     }
 
@@ -42,6 +40,7 @@ class DNN(NET):
                 pre_layer = layer
                 # tf.summary.histogram("weights", weights)
                 # tf.summary.histogram("biases", biases)
+                tf.train.BytesList
 
         with tf.variable_scope("concat"):
             init = tf.truncated_normal_initializer(
