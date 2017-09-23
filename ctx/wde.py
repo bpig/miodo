@@ -25,7 +25,7 @@ class WDE(NET):
             wide = tf.nn.embedding_lookup_sparse(weights, wide_fea, None, combiner="sum") + biases
 
         # wide_dim = 2650256
-        wide_dim = self.cf.getint(section, "dense_dim")
+        wide_dim = self.cf.getint("net", "dense_dim")
         with tf.variable_scope("embed"):
             init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(float(wide_dim)))
             weights = tf.get_variable("weights", [wide_dim, self.layer_dim[0]],
