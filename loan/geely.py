@@ -57,9 +57,8 @@ def trans_data():
                 label, fid = sess.run([data['label'], data['fid']])
                 label = label.reshape(-1)
                 row += [fid.indices[:, 0] + len(labels)]
-                labels += list(label)                
+                labels += list(label)
                 col += [fid.values]
-                # if len(labels) % 5000 == 0:
                 print time.ctime(), len(labels)
         except tf.errors.OutOfRangeError:
             print "finsh read data"
@@ -67,7 +66,6 @@ def trans_data():
             coord.request_stop()
             coord.join(threads)
 
-    
     row = np.concatenate(row, 0)
     col = np.concatenate(col, 0)
     data = np.ones(len(row))
@@ -75,20 +73,22 @@ def trans_data():
     print coo.shape
     save_npz("train", coo)
 
-    labels = np.asarray(labels)    
+    labels = np.asarray(labels)
     labels.tofile(open("train.label", "w"))
 
 
 def train():
-    # coo_matrix((data, (i, j)), [shape=(M, N)])
-
+    # coo = load_npz("train.npz")
+    # print coo.shape
+    labels = np.load("train.label")
+    print labels.shape, labels
     # coo_matrix()
     gbct = GradientBoostingClassifier(warm_start=True)
-    gbct.fit()
+    # gbct.fit()
     pass
 
 
 if __name__ == "__main__":
-    trans_data()
-    # print np.ones(3)
+    # trans_data()
+    train()
     pass
