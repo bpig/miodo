@@ -37,7 +37,6 @@ class DNN(NET):
                 # init = tf.uniform_unit_scaling_initializer(1.43)
                 layer = tf.layers.dense(pre_layer, self.layer_dim[i], name="layer%d" % i,
                                         activation=self.leaky_relu,
-                                        kernel_regularizer=max_norm_regularizer,
                                         kernel_initializer=init)
                 layer = tf.layers.dropout(layer, drop)
                 pre_layer = layer

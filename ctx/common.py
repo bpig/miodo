@@ -73,14 +73,16 @@ class NET(object):
         wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
         deep_vars = list(set(vars) - set(wide_vars))
 
-        def max_norm_regularizer(weights, threshold=1.0, axes=1, name="max_norm", collection="max_norm"):
+        def max_norm_regularizer(weights, axes=1, name="max_norm", collection="max_norm"):
+            # threshold = (16.0 / 256) ** 2
+            threshold = 0.1
             clipped = tf.clip_by_norm(weights, clip_norm=threshold, axes=axes)
             clip_weights = tf.assign(weights, clipped, name=name)
             tf.add_to_collection(collection, clip_weights)
 
         for var in deep_vars:
-            if "kernel" in var.name and "layer" in var.name:
-                max_norm_regularizer(var, name=var.name + "_norm")
+            if "kernel" in var.name:
+                max_norm_regularizer(var, name=var.name[:-2] + "_norm")
 
         if self.model == "WDE":
             ftrl = tf.train.FtrlOptimizer(0.1, l1_regularization_strength=60.0)
@@ -92,7 +94,7 @@ class NET(object):
         # adam = tf.train.AdagradOptimizer(learning_rate=lr)
         deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
 
-        ema = tf.train.ExponentialMovingAverage(0.999, global_step)
+        ema = tf.train.ExponentialMovingAverage(0.995, global_step)
         avg = ema.apply(tf.trainable_variables())
         return tf.group(deep_opt, wide_opt, avg)
 

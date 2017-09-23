@@ -10,8 +10,7 @@ from data import *
 
 
 class Env(object):
-    def __init__(self, cf, conf_file):
-        self.cf = cf
+    def __init__(self, conf_file):
         self.conf_file = conf_file
 
     def get_model_path(self):
@@ -23,7 +22,7 @@ class Env(object):
             if len(sys.argv) == 4:
                 idx = sys.argv[3]
             else:
-                idx = self.cf.get("pred", "pred_model_step")
+                idx = "final"
             return model_path + "-" + idx
         else:
             return model_path
@@ -51,7 +50,7 @@ def dump_pred(ans, fout):
 def restore_model(sess, model_path, use_ema=True):
     global_step = tf.train.get_or_create_global_step()
     if use_ema:
-        ema = tf.train.ExponentialMovingAverage(0.999, global_step)
+        ema = tf.train.ExponentialMovingAverage(0.995, global_step)
         ema.apply(tf.trainable_variables())
         variables_to_restore = ema.variables_to_restore()
         saver = tf.train.Saver(variables_to_restore)
@@ -147,7 +146,7 @@ if __name__ == "__main__":
     cf.read("conf/" + conf_file)
     Model = eval(cf.get("net", "model"))
     model = Model(cf)
-    env = Env(cf, conf_file)
+    env = Env(conf_file)
     data = Data(cf, is_pred)
     if not is_pred:
         train(cf, model, env, data)
