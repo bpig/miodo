@@ -2,6 +2,7 @@
 import os
 import time
 import sys
+import random
 import tensorflow as tf
 from functools import partial
 from ConfigParser import ConfigParser

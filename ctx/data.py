@@ -31,6 +31,7 @@ class Data(object):
         for d in reversed(range(self.date_begin, self.date_end + 1)):
             prefix = "%s/date=%2d/" % (self.top_dir, d)
             ans += [prefix + _ for _ in os.listdir(prefix) if _.startswith("part")]
+        random.shuffle(ans)
         self.data_file = ans
         return
 
@@ -50,8 +51,8 @@ class Data(object):
             [value],
             batch_size=batch_size,
             num_threads=12,
-            capacity=100000,
-            min_after_dequeue=5000,
+            capacity=1000000,
+            min_after_dequeue=100000,
             allow_smaller_final_batch=True
         )
 
@@ -88,8 +89,6 @@ if __name__ == "__main__":
             embed = gen_embed(fea[key + "_id"], sparse_table[key], key)
             embeds += [embed, v, fea['iid']]
 
-    # embed = tf.concat(embeds, axis=1)
-
     with tf.Session() as sess:
         tf.local_variables_initializer().run()
         tf.global_variables_initializer().run()
@@ -100,22 +99,15 @@ if __name__ == "__main__":
         d = 0
         ss = set()
         while not coord.should_stop():
-            # with open("hah", "w"):
             a = sess.run(embeds)
             d += 1
-            # print d
             for _ in range(0, len(a), 3):
                 i = a[_]
                 # print i.shape
                 if i.shape[0] != 2:
-                    # print a[_+1]
-                    # print a[_+2]
-
                     l = len(ss)
                     ss.add(keys[_ / 3])
                     if len(ss) != l:
                         print keys[_ / 3]
 
-                        # break
-                        # break
-                        # print i.indices.shape
+

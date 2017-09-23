@@ -62,6 +62,13 @@ def logloss():
         sp = line.strip().split()
         y = float(sp[0])
         p = float(sp[1])
+
+        # factor = 0.004
+        # if p < factor:
+        #     p = factor
+        # elif p > 1 - factor:
+        #     p = 1 - factor
+            
         sum += y * math.log(p) + (1-y)*math.log(1-p)
         count += 1
     ret = -sum/count

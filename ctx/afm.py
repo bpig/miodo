@@ -8,13 +8,13 @@ from common import *
 class AFM(NET):
     feature_map = {
         'label': tf.FixedLenFeature([1], tf.int64),
-        'dense': tf.VarLenFeature(tf.int64),
+        'fid': tf.VarLenFeature(tf.int64),
         # 'fval': tf.VarLenFeature(tf.int64),
         'iid': tf.FixedLenFeature(1, tf.int64),
     }
 
     def inference(self, fea, drop=0.5):
-        fea = fea['dense']
+        fea = fea['fid']
         self.att_dim = self.hidden_factor
         self._initialize_weights()
         weights = self.weights
@@ -35,12 +35,11 @@ class AFM(NET):
 
         fm = 0.5 * tf.subtract(square_last_embed, mean_last_embed)
         fm = tf.layers.dropout(fm, drop)
-        # attention model
 
+        # attention model
         att_state = tf.add(tf.matmul(fm, weights['att_W']), weights['att_bias'])
         att_state = tf.nn.relu(att_state)
         att_state = tf.matmul(att_state, weights['att_h'])
-
         att_sum = tf.reduce_sum(att_state, 1, keep_dims=True)
         att_state = tf.div(att_state, att_sum)
 

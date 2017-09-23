@@ -4,6 +4,7 @@ from common import *
 from nfm import *
 from dnn import *
 from wde import *
+from afm import *
 from multi_dnn import *
 from data import *
 
