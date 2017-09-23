@@ -48,30 +48,29 @@ def trans_data():
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord)
 
-        fids = []
         labels = []
+        row = []
+        col = []
         try:
             while not coord.should_stop():
                 label, fid = sess.run([data['label'], data['fid']])
-                fids += [fid]
+                row += list(fid.indices[:, 0])
+                col += list(fid.values)
                 labels += [label]
+                if len(labels) % 10000 == 0:
+                    print len(labels)
         except tf.errors.OutOfRangeError:
             print "finsh read data"
         finally:
             coord.request_stop()
             coord.join(threads)
 
-        concat = tf.sparse_concat(0, fids, expand_nonconcat_dim=True)
-        data = sess.run(concat)
-        label = np.concatenate(labels, 0)
-
-    i = data.indices[:, 0]
-    j = data.values
-    data = np.ones(len(i))
-    coo = coo_matrix((data, (i, j)))
+    labels = np.asarray(labels)
+    data = np.ones(len(labels))
+    coo = coo_matrix((data, (row, col)))
     print coo.shape
     save_npz("train", coo)
-    label.tofile(open("train.label"))
+    labels.tofile(open("train.label"))
 
 
 def train():
