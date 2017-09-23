@@ -36,10 +36,17 @@ def _read_by_queue(data_file, batch_size=2048, num_epochs=1):
 
 def trans_data():
     # top_dir = "data/"
-    train_dir = "data/train/"
+    train_dir = "data/test/"
+
+    # data_file = [ int(_[-5:]) for _ in os.listdir(train_dir) if _.startswith("part")]
+    # num = sorted(data_file)
+    # print num, len(num)
+    # for i in range(1000):
+    #     assert i == num[i], i
+
     data_file = [train_dir + _ for _ in os.listdir(train_dir) if _.startswith("part")]
-    valid_dir = "data/validate/"
-    data_file += [valid_dir + _ for _ in os.listdir(valid_dir) if _.startswith("part")]
+    # valid_dir = "data/validate/"
+    # data_file += [valid_dir + _ for _ in os.listdir(valid_dir) if _.startswith("part")]
     # data_file = data_file[:2]
     print len(data_file)
     data = _read_by_queue(data_file, 2048)
@@ -49,32 +56,32 @@ def trans_data():
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord)
 
-        labels = []
-        row = []
-        col = []
+        fout = open("pred.fea", "w")
+        fl = open("pred.lb", "w")        
+        keys = []
+        c = 0
         try:
             while not coord.should_stop():
-                label, fid = sess.run([data['label'], data['fid']])
+                label, fid, iid = sess.run([data['label'], data['fid'], data['iid']])
                 label = label.reshape(-1)
-                row += [fid.indices[:, 0] + len(labels)]
-                labels += list(label)
-                col += [fid.values]
-                print time.ctime(), len(labels)
+                iid = iid.values.reshape(-1)
+                row = fid.indices[:, 0]
+                col = fid.values
+                idx = 0
+                for i in range(label.shape[0]):
+                    print >> fout, label[i],
+                    while idx < row.shape[0] and row[idx]  == i:
+                        print >> fout, str(col[idx]) + ":1",
+                        idx += 1
+                    print >> fout
+                    print >> fl, iid[i]
+                c += len(label)
+                print time.ctime(), len(label), c
         except tf.errors.OutOfRangeError:
             print "finsh read data"
         finally:
             coord.request_stop()
             coord.join(threads)
-
-    row = np.concatenate(row, 0)
-    col = np.concatenate(col, 0)
-    data = np.ones(len(row))
-    coo = coo_matrix((data, (row, col)))
-    print coo.shape
-    save_npz("train", coo)
-
-    labels = np.asarray(labels)
-    labels.tofile(open("train.label", "w"))
 
 
 def train():
@@ -92,7 +99,22 @@ def train():
     pickle.dump(model, "gbct.ml")
 
 
+
+def split():
+    import xgboost as xgb
+    dm = xgb.DMatrix("train.xgb")
+    row = dm.num_row()
+    ct = int(row * 0.95)
+    print ct, row
+    row = range(row)
+    random.shuffle(row)
+    
+    train = dm.slice(row[:ct])
+    test = dm.slice(row[ct:])
+
+    train.save_binary("tr.xgb")
+    test.save_binary("te.xgb")    
+
+
 if __name__ == "__main__":
-    # trans_data()
-    train()
-    pass
+    trans_data()
