@@ -6,9 +6,11 @@ from sklearn.ensemble import GradientBoostingClassifier
 from scipy.sparse import coo_matrix
 from scipy.sparse import save_npz
 from scipy.sparse import load_npz
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
 
 feature_map = {
-    'label': tf.FixedLenFeature([1], tf.int64),
+    'label': tf.FixedLenFeature(1, tf.int64),
     'fid': tf.VarLenFeature(tf.int64),
     'iid': tf.VarLenFeature(tf.string),
 }
@@ -32,8 +34,13 @@ def _read_by_queue(data_file, batch_size=2048, num_epochs=1):
     return tf.parse_example(batch, features=feature_map)
 
 
-def load_data():
-    data_file = []
+def trans_data():
+    # top_dir = "data/"
+    train_dir = "data/train/"
+    data_file = [train_dir + _ for _ in os.listdir(train_dir) if _.startswith("part")]
+    valid_dir = "data/validate/"
+    data_file += [valid_dir + _ for _ in os.listdir(valid_dir) if _.startswith("part")]
+    print len(data_file)
     data = _read_by_queue(data_file)
     with tf.Session() as sess:
         coord = tf.train.Coordinator()
@@ -52,25 +59,29 @@ def load_data():
             coord.request_stop()
             coord.join(threads)
 
-        concat = tf.sparse_concat(1, fids)
+        concat = tf.sparse_concat(0, fids, expand_nonconcat_dim=True)
         data = sess.run(concat)
-        label = np.concatenate(labels, 1)
-    print data.dense_shape
-    print data.indices
-    print data.values
+        label = np.concatenate(labels, 0)
 
-    print label.shape
+    i = data.indices[:, 0]
+    j = data.values
+    data = np.ones(len(i))
+    coo = coo_matrix((data, (i, j)))
+    print coo.shape
+    save_npz("train", coo)
+    label.tofile(open("train.label"))
 
 
 def train():
     # coo_matrix((data, (i, j)), [shape=(M, N)])
 
     # coo_matrix()
-    # gbct = GradientBoostingClassifier(warm_start=True)
-    # gbct.fit()
+    gbct = GradientBoostingClassifier(warm_start=True)
+    gbct.fit()
     pass
 
 
 if __name__ == "__main__":
-    load_data()
+    # load_data()
+    print np.ones(3)
     pass
