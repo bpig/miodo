@@ -57,6 +57,10 @@ class NET(object):
             total_parameters += variable_parameters
         print "#params: %d" % total_parameters
 
+    @staticmethod
+    def leaky_relu(z, name=None):
+        return tf.maximum(0.01 * z, z, name=name)
+
     def train_op(self, loss):
         global_step = tf.train.get_or_create_global_step()
         lr = tf.train.exponential_decay(
@@ -79,7 +83,7 @@ class NET(object):
         # adam = tf.train.AdagradOptimizer(learning_rate=lr)
         deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
 
-        ema = tf.train.ExponentialMovingAverage(0.99, global_step)
+        ema = tf.train.ExponentialMovingAverage(0.999, global_step)
         avg = ema.apply(tf.trainable_variables())
         return tf.group(deep_opt, wide_opt, avg)
 

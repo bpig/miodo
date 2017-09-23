@@ -47,7 +47,7 @@ def dump_pred(ans, fout):
 def restore_model(sess, model_path, use_ema=True):
     global_step = tf.train.get_or_create_global_step()
     if use_ema:
-        ema = tf.train.ExponentialMovingAverage(0.99, global_step)
+        ema = tf.train.ExponentialMovingAverage(0.999, global_step)
         ema.apply(tf.trainable_variables())
         variables_to_restore = ema.variables_to_restore()
         saver = tf.train.Saver(variables_to_restore)
