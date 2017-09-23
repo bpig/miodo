@@ -46,6 +46,7 @@ class NET(object):
         self.model = cf.get(section, "model")
 
         self.training = tf.placeholder_with_default(False, shape=(), name='training')
+        self.cf = cf
 
     def get_weight_size(self, vars):
         total_parameters = 0
