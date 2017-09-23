@@ -3,14 +3,6 @@
 from common import *
 
 
-def max_norm_regularizer(threshold=1.0, axes=1, name="max_norm", collection="max_norm"):
-    def max_norm(weights):
-        clipped = tf.clip_by_norm(weights, clip_norm=threshold, axes=axes)
-        clip_weights = tf.assign(weights, clipped, name=name)
-        tf.add_to_collection(collection, clip_weights)
-        return None
-
-    return max_norm
 
 
 class DNN(NET):

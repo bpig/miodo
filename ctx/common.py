@@ -73,9 +73,14 @@ class NET(object):
         wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
         deep_vars = list(set(vars) - set(wide_vars))
 
+        def max_norm_regularizer(weights, threshold=1.0, axes=1, name="max_norm", collection="max_norm"):
+            clipped = tf.clip_by_norm(weights, clip_norm=threshold, axes=axes)
+            clip_weights = tf.assign(weights, clipped, name=name)
+            tf.add_to_collection(collection, clip_weights)
+
         for var in deep_vars:
             if "kernel" in var.name and "layer" in var.name:
-                tf.add_to_collection("max_norm", var)
+                max_norm_regularizer(var, name=var.name + "_norm")
 
         if self.model == "WDE":
             ftrl = tf.train.FtrlOptimizer(0.1, l1_regularization_strength=60.0)
