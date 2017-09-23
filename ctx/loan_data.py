@@ -18,7 +18,7 @@ class LoanData(object):
         self.valid_dir = self.get_data_list("validate")
         self.train_dir = self.get_data_list("train")
         self.test_dir = self.get_data_list("test")
-        
+
         self.is_train = not is_pred
         return
 
@@ -28,7 +28,6 @@ class LoanData(object):
         if shuffle:
             random.shuffle(ans)
         return ans
-        
 
     def read(self, feature_map):
         if self.is_train:
@@ -58,5 +57,3 @@ class LoanData(object):
 
     def read_valid(self, feature_map):
         return self._read_by_queue(self.valid_dir, None, self.batch_size, feature_map)
-
-
