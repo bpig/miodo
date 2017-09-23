@@ -74,7 +74,7 @@ class NET(object):
         deep_vars = list(set(vars) - set(wide_vars))
 
         if self.model == "WDE":
-            ftrl = tf.train.FtrlOptimizer(0.1, l1_regularization_strength=1.0)
+            ftrl = tf.train.FtrlOptimizer(0.1, l1_regularization_strength=60.0)
             wide_opt = ftrl.minimize(loss, var_list=wide_vars)
         else:
             wide_opt = tf.no_op("wide_placehold")

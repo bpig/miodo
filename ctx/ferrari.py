@@ -120,11 +120,13 @@ def train(cf, model, env, data):
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord, sess=sess)
 
+        clip_all_weights = tf.get_collection("max_norm")
         try:
             while not coord.should_stop():
                 _, loss_value, gs, loss_valid = sess.run(
                     [opt, loss, global_step, loss2], feed_dict={model.training: True})
                 log.run(gs, loss_value, loss_valid)
+                sess.run(clip_all_weights)
                 if gs % cf.getint("train", "dump_step") == 0:
                     saver.save(sess, model_path, global_step=global_step)
         except tf.errors.OutOfRangeError:
