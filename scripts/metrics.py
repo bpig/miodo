@@ -63,7 +63,7 @@ def logloss():
         y = float(sp[0])
         p = float(sp[1])
 
-        # factor = 0.004
+        # factor = 0.1
         # if p < factor:
         #     p = factor
         # elif p > 1 - factor:
