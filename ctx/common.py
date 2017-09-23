@@ -8,6 +8,7 @@ from functools import partial
 from ConfigParser import ConfigParser
 import numpy as np
 import math
+from functools import partial
 
 
 class TrainLog():
@@ -43,6 +44,8 @@ class NET(object):
         self.lr_decay_step = cf.getint(section, "lr_decay_step")
         self.lr_decay_rate = cf.getfloat(section, "lr_decay_rate")
         self.model = cf.get(section, "model")
+
+        self.training = tf.placeholder_with_default(False, shape=(), name='training')
 
     def get_weight_size(self, vars):
         total_parameters = 0

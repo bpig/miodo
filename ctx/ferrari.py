@@ -118,7 +118,8 @@ def train(cf, model, env, data):
 
         try:
             while not coord.should_stop():
-                _, loss_value, gs, loss_valid = sess.run([opt, loss, global_step, loss2])
+                _, loss_value, gs, loss_valid = sess.run(
+                    [opt, loss, global_step, loss2], feed_dict={model.training: True})
                 log.run(gs, loss_value, loss_valid)
                 if gs % cf.getint("train", "dump_step") == 0:
                     saver.save(sess, model_path, global_step=global_step)
