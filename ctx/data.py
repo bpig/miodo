@@ -51,7 +51,7 @@ class Data(object):
             [value],
             batch_size=batch_size,
             num_threads=12,
-            capacity=1000000,
+            capacity=500000,
             min_after_dequeue=100000,
             allow_smaller_final_batch=True
         )
