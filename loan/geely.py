@@ -78,13 +78,15 @@ def trans_data():
 
 
 def train():
-    # coo = load_npz("train.npz")
-    # print coo.shape
-    labels = np.load("train.label")
-    print labels.shape, labels
-    # coo_matrix()
-    gbct = GradientBoostingClassifier(warm_start=True)
-    # gbct.fit()
+    X = load_npz("train.npz")
+    print X.shape
+    y = np.fromfile("train.label", dtype=np.int64)
+    print y.shape
+
+    X_train, X_val, y_train, y_val = train_test_split(X, y)
+    gbct = GradientBoostingClassifier(max_depth=2, n_estimators=30, warm_start=True)
+    gbct.fit(X_train, y_train)
+
     pass
 
 
