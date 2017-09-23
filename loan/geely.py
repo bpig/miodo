@@ -78,16 +78,18 @@ def trans_data():
 
 
 def train():
-    X = load_npz("train.npz")
+    X = load_npz("train.npz")[:10]
     print X.shape
-    y = np.fromfile("train.label", dtype=np.int64)
+    y = np.fromfile("train.label", dtype=np.int64)[:10]
     print y.shape
 
-    X_train, X_val, y_train, y_val = train_test_split(X, y)
+    X_train, X_val, y_train, y_val = train_test_split(
+        X, y, train_size=0.95, random_state=1314)
+
     gbct = GradientBoostingClassifier(max_depth=2, n_estimators=30, warm_start=True)
     gbct.fit(X_train, y_train)
-
-    pass
+    model = gbct.get_params()
+    pickle.dump(model, "gbct.ml")
 
 
 if __name__ == "__main__":
