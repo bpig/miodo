@@ -40,8 +40,9 @@ def trans_data():
     data_file = [train_dir + _ for _ in os.listdir(train_dir) if _.startswith("part")]
     valid_dir = "data/validate/"
     data_file += [valid_dir + _ for _ in os.listdir(valid_dir) if _.startswith("part")]
+    # data_file = data_file[:2]
     print len(data_file)
-    data = _read_by_queue(data_file)
+    data = _read_by_queue(data_file, 2048)
     with tf.Session() as sess:
         tf.global_variables_initializer().run()
         tf.local_variables_initializer().run()
@@ -54,23 +55,28 @@ def trans_data():
         try:
             while not coord.should_stop():
                 label, fid = sess.run([data['label'], data['fid']])
-                row += list(fid.indices[:, 0])
-                col += list(fid.values)
-                labels += [label]
-                if len(labels) % 10000 == 0:
-                    print len(labels)
+                label = label.reshape(-1)
+                row += [fid.indices[:, 0] + len(labels)]
+                labels += list(label)                
+                col += [fid.values]
+                # if len(labels) % 5000 == 0:
+                print time.ctime(), len(labels)
         except tf.errors.OutOfRangeError:
             print "finsh read data"
         finally:
             coord.request_stop()
             coord.join(threads)
 
-    labels = np.asarray(labels)
-    data = np.ones(len(labels))
+    
+    row = np.concatenate(row, 0)
+    col = np.concatenate(col, 0)
+    data = np.ones(len(row))
     coo = coo_matrix((data, (row, col)))
     print coo.shape
     save_npz("train", coo)
-    labels.tofile(open("train.label"))
+
+    labels = np.asarray(labels)    
+    labels.tofile(open("train.label", "w"))
 
 
 def train():
