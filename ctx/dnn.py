@@ -23,9 +23,10 @@ class DNN(NET):
             weights = tf.get_variable("weights", [self.sparse_dim, self.layer_dim[0]],
                                       initializer=init)
             biases = tf.get_variable("biases", [self.layer_dim[0]], initializer=tf.zeros_initializer)
-            tf.summary.histogram("weights", weights)
-            tf.summary.histogram("biases", biases)
+            # tf.summary.histogram("weights", weights)
+            # tf.summary.histogram("biases", biases)
             embed = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + biases
+            embed = self.leaky_relu(embed)
 
         with tf.variable_scope("deep"):
             pre_layer = embed

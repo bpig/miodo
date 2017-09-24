@@ -38,7 +38,7 @@ def deep(ids, dense_dim, dims, drop=0.5):
 
 
 def wide(ids, wide_dim):
-    with tf.variable_scope("wide"):
+    with tf.device("/cpu:0"), tf.variable_scope("wide"):
         weights_shape = [wide_dim, 1]
         biases_shape = [1, ]
         layer = sparse_embedding(ids, weights_shape, biases_shape)
