@@ -30,8 +30,9 @@ def pred():
     gpu_options = tf.GPUOptions(allow_growth=True)
     config = tf.ConfigProto(gpu_options=gpu_options)
 
+    model_out = "model/zilong-final"
+
     with tf.Session(config=config) as sess:
-        model_init = model_out + '-final'
         saver.restore(sess, model_out)
 
         fout = open("pred_result", "w")
