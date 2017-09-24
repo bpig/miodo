@@ -27,7 +27,6 @@ class Data(object):
                 self.valid_data += [prefix + _ for _ in os.listdir(prefix) if _.startswith("part")]
             print "valid", len(self.valid_data)
 
-
     def get_data_list(self):
         if self.data_file:
             return
@@ -113,5 +112,3 @@ if __name__ == "__main__":
                     ss.add(keys[_ / 3])
                     if len(ss) != l:
                         print keys[_ / 3]
-
-

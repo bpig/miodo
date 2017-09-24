@@ -10,7 +10,7 @@ import numpy as np
 import math
 from functools import partial
 import sklearn
-import pickle
+import cPickle as pickle
 
 if __name__ == "__main__":
     pass
