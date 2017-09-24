@@ -2,84 +2,55 @@ from inputs import *
 from network import *
 
 import os
+import random
 
 
-def predict_test_set():
-    # read data use cpu, and train model use gpu
-    with tf.device('/cpu:1'):
-        # get all test files
-        print "test_dir =", FLAGS.test_dir
-        all_test_files = []
-        test_walk = os.walk(FLAGS.test_dir)
-        for path, dir, file_list in test_walk:
-            for filename in file_list:
-                if filename.startswith("part"):
-                    all_test_files.append(os.path.join(path, filename))
+def get_data_list(top_dir, begin, end):
+    ans = []
+    for d in range(begin, end + 1):
+        prefix = "%s/date=%2d/" % (top_dir, d)
+        ans += [prefix + _ for _ in os.listdir(prefix) if _.startswith("part")]
+    random.shuffle(ans)
+    return ans
 
-        print "all_test_files_len", len(all_test_files)
-        print "all_test_files", all_test_files
 
-        # read test data
-        filename_queue = tf.train.string_input_producer(tf.constant(all_test_files), num_epochs=1)
-        test_batch = read_batch(filename_queue)
+def pred():
+    top_dir = "dw/"
+    valid_data = get_data_list(top_dir, 29, 30)
 
-    # build test net
-    _, test_predict, test_instance_id = inference_deep_wide(test_batch['deep_feature_index'],
-                                                            test_batch['deep_feature_id'],
-                                                            test_batch['wide_feature_index'],
-                                                            test_batch['wide_feature_id'],
-                                                            test_batch['instance_id'],
-                                                            layers, 1)
+    filename_queue = tf.train.string_input_producer(valid_data, num_epochs=1)
+    batch = read_batch(filename_queue)
 
-    # global step
-    global_step = tf.Variable(0, name='global_step', trainable=False)
+    logits = inference_deep_wide(batch)
+    prob = tf.sigmoid(logits)
 
-    # saver for reload training model
-    saver = tf.train.Saver(write_version=tf.train.SaverDef.V2,
-                           max_to_keep=100)
+    saver = tf.train.Saver()
 
-    # config
-    graph_options = tf.GraphOptions(enable_bfloat16_sendrecv=True)
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.95,
-                                allow_growth=True)
-    config = tf.ConfigProto(graph_options=graph_options,
-                            gpu_options=gpu_options,
-                            log_device_placement=False,
-                            allow_soft_placement=True)
+    # graph_options = tf.GraphOptions(enable_bfloat16_sendrecv=True)
+    gpu_options = tf.GPUOptions(allow_growth=True)
+    config = tf.ConfigProto(gpu_options=gpu_options)
 
     with tf.Session(config=config) as sess:
-        # read training model for test
-        model_init = FLAGS.model_dir + "/" + FLAGS.model_name + '-' + str(FLAGS.max_steps)
-        logger.info('model_init: %s', model_init)
-        saver.restore(sess, model_init)
-        logger.info('model restore done')
+        model_init = model_out + '-final'
+        saver.restore(sess, model_out)
 
-        predict_result_file = open(FLAGS.predict_out, "w")
-        print >> predict_result_file, 'instance_id,prob'
+        fout = open("pred_result", "w")
 
         sess.run(tf.local_variables_initializer())
         coord = tf.train.Coordinator()
-        threads = tf.train.start_queue_runners(coord=coord, sess=sess)
+        threads = tf.train.start_queue_runners(coord=coord)
         try:
             while True:
-                step, instance_id, predict = sess.run([global_step, test_instance_id, test_predict])
-
-                size_batch = len(instance_id)
-                logger.info('batch size: %d', size_batch)
-                for i in range(size_batch):
-                    print >> predict_result_file, "%d,%f" % (instance_id[i][0], predict[i][0])
-                    if step % 10000 == 0 and i == 0:
-                        logger.info('instance_id: %d, predict: %f', instance_id[i][0], predict[i][0])
+                lb, iid, pre = sess.run([batch['label'], batch['iid'], prob])
+                for i in range(len(iid):
+                    print >> fout, "%d %f %s" % (lb[i][0], pre[i][0], iid[i][0])
 
         except tf.errors.OutOfRangeError as e:
-            coord.request_stop(e)
+            pass
         finally:
             coord.request_stop()
             coord.join(threads)
-            predict_result_file.close()
-        logger.info('test finished')
 
 
 if __name__ == '__main__':
-    with tf.device('/gpu:0'):
-        predict_test_set()
+    pred()
