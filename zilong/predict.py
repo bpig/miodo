@@ -43,7 +43,7 @@ def pred():
         try:
             while True:
                 lb, iid, pre = sess.run([batch['label'], batch['iid'], prob])
-                for i in range(len(iid):
+                for i in range(len(iid)):
                     print >> fout, "%d %f %s" % (lb[i][0], pre[i][0], iid[i][0])
 
         except tf.errors.OutOfRangeError as e:
