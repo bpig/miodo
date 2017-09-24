@@ -75,7 +75,6 @@ class NET(object):
         deep_vars = list(set(vars) - set(wide_vars))
 
         def max_norm_regularizer(weights, axes=1, name="max_norm", collection="max_norm"):
-            # threshold = (16.0 / 256) ** 2
             threshold = 0.1
             clipped = tf.clip_by_norm(weights, clip_norm=threshold, axes=axes)
             clip_weights = tf.assign(weights, clipped, name=name)

@@ -1,6 +1,9 @@
 #!/usr/bin/python
 import sys
 import math
+import time
+import os
+from os.path import join, getsize
 
 def scoreAUC(labels, probs):
     i_sorted = sorted(xrange(len(probs)), key=lambda i: probs[i],
@@ -27,10 +30,10 @@ def scoreAUC(labels, probs):
     auc = auc_temp / (TP * FP)
     return auc
 
-def read_file():
+def read_file(filename):
     labels = []
     probs = []
-    for line in open(sys.argv[1]):
+    for line in open(filename):
         sp = line.strip().split()
         try:
             label = int(sp[0])
@@ -47,18 +50,16 @@ def read_file():
     return (labels, probs)
 
 
-def auc():
-    import sys
-    labels, probs = read_file()
+def auc(filename):
+    labels, probs = read_file(filename)
     auc = scoreAUC(labels, probs)
     print("AUC  : %f" % auc)
 
-def logloss():
-    # outfile = open("loss", 'w')
+def logloss(filename):
     sum = 0.0
     count = 0
 
-    for line in open(sys.argv[1]):    
+    for line in open(filename):
         sp = line.strip().split()
         y = float(sp[0])
         p = float(sp[1])
@@ -77,5 +78,11 @@ def logloss():
     
 if __name__=="__main__":
     """usage : ./metrics.py filename"""
-    auc()
-    logloss()
+    conf = sys.argv[1][:-5]
+    filename = "log/%s_log/pred_result" % conf
+    mtime  = time.ctime(os.stat(filename).st_mtime)
+    filesize = "%.3fMB" % (getsize(filename) / 1024.0 / 1024.0)
+    print mtime, filename, filesize
+
+    auc(filename)
+    logloss(filename)

@@ -48,6 +48,7 @@ class DNN(NET):
             # init = tf.uniform_unit_scaling_initializer(1.)
             logits = tf.layers.dense(pre_layer, 1, name="logists",
                                      kernel_initializer=init)
+            # logits = tf.clip_by_value(logits, -5, 5)
 
         return logits
 

@@ -124,8 +124,8 @@ def train(cf, model, env, data):
         print clip_all_weights
         try:
             while not coord.should_stop():
-                _, loss_value, gs, loss_valid = sess.run(
-                    [opt, loss, global_step, loss2], feed_dict={model.training: True})
+                loss_value, _, gs, loss_valid = sess.run(
+                    [loss, opt, global_step, loss2], feed_dict={model.training: True})
                 log.run(gs, loss_value, loss_valid)
                 sess.run(clip_all_weights)
                 if gs % cf.getint("train", "dump_step") == 0:
