@@ -90,13 +90,27 @@ class NET(object):
         else:
             wide_opt = tf.no_op("wide_placehold")
 
+        emb_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="embed")
+        print "emb", emb_vars
+        adam1 = tf.train.AdamOptimizer(learning_rate=lr*2*2)
+        emb_opt = adam1.minimize(loss, var_list=emb_vars)        
+
+        deep_vars = list(set(deep_vars) - set(emb_vars))
+
+        l1_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="deep/layer1")
+        print "l1", l1_vars
+        adam2 = tf.train.AdamOptimizer(learning_rate=lr*2)
+        l1_opt = adam2.minimize(loss, var_list=l1_vars)
+
+        deep_vars = list(set(deep_vars) - set(l1_vars))
+        print "other", deep_vars
         adam = tf.train.AdamOptimizer(learning_rate=lr)
         # adam = tf.train.AdagradOptimizer(learning_rate=lr)
         deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
 
         ema = tf.train.ExponentialMovingAverage(0.995, global_step)
         avg = ema.apply(tf.trainable_variables())
-        return tf.group(deep_opt, wide_opt, avg)
+        return tf.group(deep_opt, wide_opt, avg, emb_opt)
 
     def loss_op(self, labels, logits):
         if labels.dtype != tf.float32:

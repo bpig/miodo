@@ -27,6 +27,7 @@ class DNN(NET):
             # tf.summary.histogram("biases", biases)
             embed = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + biases
             embed = self.leaky_relu(embed)
+            # embed = tf.layers.dropout(embed, drop)
 
         with tf.variable_scope("deep"):
             pre_layer = embed
@@ -39,9 +40,6 @@ class DNN(NET):
                                         kernel_initializer=init)
                 layer = tf.layers.dropout(layer, drop)
                 pre_layer = layer
-                # tf.summary.histogram("weights", weights)
-                # tf.summary.histogram("biases", biases)
-                tf.train.BytesList
 
         with tf.variable_scope("concat"):
             init = tf.truncated_normal_initializer(
