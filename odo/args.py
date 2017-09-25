@@ -51,24 +51,29 @@ parser.add_argument('--predict_out', type=str, default='ans.raw',
 
 FLAGS, un_parsed = parser.parse_known_args()
 
-# def init_log():
-# ct = os.listdir(FLAGS.log_dir)
-# log_name = FLAGS.log_dir + "/" + FLAGS.log_name + "_%d" % ct
 
-logger = logging.getLogger("odo")
-logger.setLevel(logging.INFO)
+def init_log():
+    # ct = os.listdir(FLAGS.log_dir)
+    # log_name = FLAGS.log_dir + "/" + FLAGS.log_name + "_%d" % ct
 
-handler = logging.FileHandler('milk.log')
-handler.setLevel(logging.INFO)
+    logger = logging.getLogger("odo")
+    logger.setLevel(logging.INFO)
 
-# formatter = logging.Formatter('%(asctime)s %(relativeCreated)d  %(message)s')
-formatter = logging.Formatter('%(asctime)s %(message)s')
-handler.setFormatter(formatter)
+    handler = logging.FileHandler('milk.log')
+    handler.setLevel(logging.INFO)
 
-logger.addHandler(handler)
+    # formatter = logging.Formatter('%(asctime)s %(relativeCreated)d  %(message)s')
+    formatter = logging.Formatter('%(asctime)s %(message)s')
+    handler.setFormatter(formatter)
 
-# handler = logging.StreamHandler()
-# logger.addHandler(handler)
+    logger.addHandler(handler)
+
+    handler = logging.StreamHandler()
+    logger.addHandler(handler)
+    return logger
+
+
+logger = init_log()
 
 # print FLAGS
 # logger.info(FLAGS)
