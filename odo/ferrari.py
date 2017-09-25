@@ -62,13 +62,13 @@ def get_vars():
 
     wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
     for var in wide_vars:
-        logging.info(var, var.name, var.get_shape())
-    logging.info('wide_vars', len(wide_vars))
+        logger.info(var, var.name, var.get_shape())
+    logger.info('wide_vars', len(wide_vars))
 
     deep_vars = list(set(vars) - set(wide_vars))
     for var in deep_vars:
-        logging.info(var, var.name, var.get_shape())
-    logging.info('deep_vars', len(deep_vars))
+        logger.info(var, var.name, var.get_shape())
+    logger.info('deep_vars', len(deep_vars))
 
     return wide_vars, deep_vars
 
