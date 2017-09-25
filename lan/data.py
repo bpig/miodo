@@ -37,9 +37,9 @@ def get_data(dirname):
             items = l.split()
             label = int(items[0])
             feas = map(lambda x: x.split(":"), items[1:])
+            feas = filter(lambda x: x[0] in kv, feas)
             fid, value = zip(*feas)
             fid = map(lambda x:kv[x], fid)
-            print fid
             value = np.asarray(value, dtype=np.float)
             yield label, fid, value
 
@@ -57,6 +57,8 @@ def load(dirname):
         col += [fid]
         data += [fval]
         labels += [label]
+        if i % 1000 == 0:
+            print time.ctime(), i
     print time.ctime(), "end"
     return labels, data, row, col
 
