@@ -82,7 +82,12 @@ def logloss(filename):
 if __name__ == "__main__":
     """usage : ./metrics.py filename"""
     model = sys.argv[1]
-    filename = "model/%d/ans.raw" % model
+    try:
+        model = int(model)
+        filename = "model/%d/ans.raw" % model
+    except:
+        filename = model
+
     mtime = time.ctime(os.stat(filename).st_mtime)
     filesize = "%.3fMB" % (getsize(filename) / 1024.0 / 1024.0)
     print mtime, filename, filesize
