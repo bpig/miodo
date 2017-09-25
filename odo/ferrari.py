@@ -19,10 +19,10 @@ handler.setFormatter(formatter)
 
 logger.addHandler(handler)
 
-# handler = logging.StreamHandler()
-# handler.setFormatter(formatter)
-# logger.addHandler(handler)
-# logger.removeHandler(handler)
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.removeHandler(handler)
 logger.info(FLAGS)
 
 
@@ -40,7 +40,9 @@ class TrainLog:
             self.aa = self.aa * factor + (1 - factor) * loss
             self.bb = self.bb * factor + (1 - factor) * loss_valid
         out = "%4d   %.3f   %.3f   %.3f" % (gs, loss, self.aa, self.bb)
-        logger.info(out)
+        if gs % FLAGS.log_per_batch == 0:
+            print time.ctime(), out
+            logger.info(out)
 
 
 def max_norm(vars, axes=1, name="max_norm", collection="max_norm"):
@@ -62,13 +64,13 @@ def get_vars():
 
     wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
     for var in wide_vars:
-        logger.info(var, var.name, var.get_shape())
-    logger.info('wide_vars', len(wide_vars))
+        print var.name, var.get_shape()
+    print('wide_vars', len(wide_vars))
 
     deep_vars = list(set(vars) - set(wide_vars))
     for var in deep_vars:
-        logger.info(var, var.name, var.get_shape())
-    logger.info('deep_vars', len(deep_vars))
+        print var.name, var.get_shape()
+    print('deep_vars', len(deep_vars))
 
     return wide_vars, deep_vars
 
@@ -131,8 +133,7 @@ def train():
                 _, t_loss, v_loss, step = sess.run([
                     train_op, train_loss, valid_loss, global_step])
 
-                if step % FLAGS.log_per_batch == 0:
-                    tl.run(step, t_loss, v_loss)
+                tl.run(step, t_loss, v_loss)
 
                 if step % FLAGS.save_per_batch == 0:
                     saver.save(sess, FLAGS.model, global_step=step)
