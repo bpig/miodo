@@ -35,7 +35,7 @@ parser.add_argument('--model_name', type=str, default='odo',
                     help='model name')
 
 parser.add_argument('--train_begin', type=int, default=11)
-parser.add_argument('--train_end', type=int, default=28)
+parser.add_argument('--train_end', type=int, default=27)
 
 parser.add_argument('--valid_begin', type=int, default=29)
 parser.add_argument('--valid_end', type=int, default=30)
@@ -55,12 +55,12 @@ def prepare_env():
 
     FLAGS.idx = len(os.listdir(top_dir))
     FLAGS.dir = top_dir + `FLAGS.idx`
-    logging.info("dir_path", FLAGS.dir)
+    print "dir_path", FLAGS.dir
 
     if not os.path.exists(FLAGS.dir):
         os.mkdir(FLAGS.dir)
     FLAGS.model = FLAGS.dir + "/m%d" % FLAGS.idx
-    logging.info("model_path", FLAGS.model)
+    print "model_path", FLAGS.model
 
 
 # prepare_env()

@@ -17,8 +17,8 @@ def read_data():
     train_dir = list_dir(top_dir, FLAGS.train_begin, FLAGS.train_end)
     valid_dir = list_dir(top_dir, FLAGS.valid_begin, FLAGS.valid_end)
 
-    # logger.info("train dir len", len(train_dir))
-    # logger.info("valid dir len", len(valid_dir))
+    print "train dir len", len(train_dir)
+    print "valid dir len", len(valid_dir)
 
     fq = tf.train.string_input_producer(train_dir)
     fea = read_batch(fq)

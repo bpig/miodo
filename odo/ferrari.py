@@ -7,7 +7,7 @@ prepare_env()
 
 log_name = FLAGS.dir + "/" + "%d.log" % FLAGS.idx
 
-logger = logging.getLogger("odo")
+logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 handler = logging.FileHandler(log_name)
@@ -19,8 +19,10 @@ handler.setFormatter(formatter)
 
 logger.addHandler(handler)
 
-handler = logging.StreamHandler()
-logger.addHandler(handler)
+# handler = logging.StreamHandler()
+# handler.setFormatter(formatter)
+# logger.addHandler(handler)
+# logger.removeHandler(handler)
 logger.info(FLAGS)
 
 
@@ -37,7 +39,7 @@ class TrainLog:
         else:
             self.aa = self.aa * factor + (1 - factor) * loss
             self.bb = self.bb * factor + (1 - factor) * loss_valid
-        out = "%4d\t%.3f\t%.3f\t%.3f" % (gs, loss, self.aa, self.bb)
+        out = "%4d   %.3f   %.3f   %.3f" % (gs, loss, self.aa, self.bb)
         logger.info(out)
 
 
@@ -163,5 +165,4 @@ def train():
 
 
 if __name__ == '__main__':
-    prepare_env()
     train()
