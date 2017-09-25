@@ -11,6 +11,14 @@ def list_dir(top_dir, begin, end):
     return ans
 
 
+def read_pred():
+    top_dir = FLAGS.top_dir
+    b, e = eval("[%s]" % FLAGS.train)
+    pred_dir = list_dir(top_dir, b, e)
+    fq = tf.train.string_input_producer(pred_dir, num_epochs=1)
+    return read_batch(fq)
+
+
 def read_data():
     top_dir = FLAGS.top_dir
 

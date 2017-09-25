@@ -23,24 +23,27 @@ parser.add_argument('--log_per_batch', type=int, default=10,
 parser.add_argument('--save_per_batch', type=int, default=10000,
                     help='Batch number of save model')
 
-parser.add_argument('--valid_per_batch', type=int, default=10000,
-                    help='Batch number of do validation')
+parser.add_argument('--dir', type=str, default="final")
+
+parser.add_argument('--model_version', type=str, default="final")
 
 parser.add_argument('--lamda', type=float, default=0.0)
 
 parser.add_argument('--keep_prob', type=float, default=0.5)
 
-parser.add_argument('--model_name', type=str, default='odo',
-                    help='model name')
+parser.add_argument('--model_name', type=str, default='odo')
+
+parser.add_argument('--model', type=int, default=0)
 
 parser.add_argument('--train', type=str, default="11,27")
 
 parser.add_argument('--valid', type=str, default="29,30")
 
+parser.add_argument('--test', type=str, default="32,33")
+
 parser.add_argument('--top_dir', type=str, default='')
 
-parser.add_argument('--predict_out', type=str, default='ans.raw',
-                    help='predict output result file')
+parser.add_argument('--ans', type=str, default='ans.raw')
 
 FLAGS, un_parsed = parser.parse_known_args()
 

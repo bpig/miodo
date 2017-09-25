@@ -5,65 +5,44 @@ import os
 
 
 def predict_test_set():
-  #read data use cpu, and train model use gpu
-  with tf.device('/cpu:0'):
-    ans = []
-    for d in range(32, 33):
-      prefix = "data/date=%2d/" % d
-      ans += [prefix + _ for _ in os.listdir(prefix) if _.startswith("part")]
-    all_test_files = ans
-    
-    print "all_test_files", len(all_test_files)
+    fea = read_pred()
+    layers = eval("[%s]" % FLAGS.layers)
+    _, pred, iid = inference_deep_wide(
+        fea['deep_feature_id'], fea['wide_feature_id'], fea['instance_id'], layers, 1)
 
-    #read test data
-    filename_queue = tf.train.string_input_producer(all_test_files, num_epochs=1)
-    test_batch = read_batch(filename_queue, 0)
+    global_step = tf.train.get_or_create_global_step()
 
-  #build test net
-  _, test_predict, test_instance_id = inference_deep_wide(test_batch['deep_feature_index'],
-                                                          test_batch['deep_feature_id'],
-                                                          test_batch['wide_feature_index'],
-                                                          test_batch['wide_feature_id'],
-                                                          test_batch['instance_id'],
-                                                          layers, 1)
+    saver = tf.train.Saver(write_version=tf.train.SaverDef.V2, max_to_keep=10)
 
-  #global step
-  global_step = tf.Variable(0, name='global_step', trainable=False)
+    gpu_options = tf.GPUOptions(allow_growth=True)
+    config = tf.ConfigProto(gpu_options=gpu_options)
 
-  #saver for reload training model
-  saver = tf.train.Saver(write_version=tf.train.SaverDef.V2,
-                         max_to_keep=100)
+    FLAGS.model = FLAGS.dir + "/m%d" % FLAGS.model
+    model_path = FLAGS.model + "-" + FLAGS.model_version
+    print model_path
 
-  #config
-  gpu_options = tf.GPUOptions(allow_growth=True)
-  config = tf.ConfigProto(gpu_options=gpu_options)
-  model_out = "model/zl"
-  
-  with tf.Session(config=config) as sess:
-    #read training model for test
-    model_init = model_out + "-final"
-    saver.restore(sess, model_init)
+    with tf.Session(config=config) as sess:
+        saver.restore(sess, model_path)
 
-    predict_result_file = open("ans.raw", "w")
+        fout = open(FLAGS.ans, "w")
 
-    sess.run(tf.local_variables_initializer())
-    coord = tf.train.Coordinator()
-    threads = tf.train.start_queue_runners(coord=coord, sess=sess)
-    try:
-      while True:
-        step, instance_id, predict,label = sess.run([global_step, test_instance_id, test_predict, test_batch['label']])
+        sess.run(tf.local_variables_initializer())
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(coord=coord, sess=sess)
+        try:
+            while True:
+                step, imei, prob, label = sess.run(
+                    [global_step, iid, pred, fea['label']])
 
-        size_batch = len(instance_id)
+                for i in range(len(imei)):
+                    print >> fout, "%d %f %d" % (label[i][0], prob[i][0], imei[i][0])
 
-        for i in range(size_batch):
-          print >> predict_result_file, "%d %f %d" % (label[i][0], predict[i][0], instance_id[i][0])
-
-    except tf.errors.OutOfRangeError as e:
-      coord.request_stop(e)
-    finally:
-      coord.request_stop()
-      coord.join(threads)
+        except tf.errors.OutOfRangeError as e:
+            coord.request_stop(e)
+        finally:
+            coord.request_stop()
+            coord.join(threads)
 
 
 if __name__ == '__main__':
-  predict_test_set()
+    predict_test_set()
