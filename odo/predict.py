@@ -17,7 +17,7 @@ def predict_test_set():
     gpu_options = tf.GPUOptions(allow_growth=True)
     config = tf.ConfigProto(gpu_options=gpu_options)
 
-    FLAGS.model = FLAGS.dir + "/m%d" % FLAGS.model
+    FLAGS.model = "model/%d/m%d" % (FLAGS.model, FLAGS.model)
     model_path = FLAGS.model + "-" + FLAGS.model_version
     print model_path
 

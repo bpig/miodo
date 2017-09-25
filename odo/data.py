@@ -80,21 +80,21 @@ def read_batch(filename_queue):
     return parse_example(batch)
 
 
-# feature_map = {
-#     'label': tf.FixedLenFeature([1], tf.int64),
-#     'deep_feature_index': tf.VarLenFeature(tf.int64),
-#     'deep_feature_id': tf.VarLenFeature(tf.int64),
-#     'wide_feature_index': tf.VarLenFeature(tf.int64),
-#     'wide_feature_id': tf.VarLenFeature(tf.int64),
-#     'instance_id': tf.FixedLenFeature([1], tf.int64),
-# }
-
 feature_map = {
     'label': tf.FixedLenFeature([1], tf.int64),
-    'deep': tf.VarLenFeature(tf.int64),
-    'wide': tf.VarLenFeature(tf.int64),
-    'iid': tf.FixedLenFeature([1], tf.int64),
+    'deep_feature_index': tf.VarLenFeature(tf.int64),
+    'deep_feature_id': tf.VarLenFeature(tf.int64),
+    'wide_feature_index': tf.VarLenFeature(tf.int64),
+    'wide_feature_id': tf.VarLenFeature(tf.int64),
+    'instance_id': tf.FixedLenFeature([1], tf.int64),
 }
+
+# feature_map = {
+#     'label': tf.FixedLenFeature([1], tf.int64),
+#     'deep': tf.VarLenFeature(tf.int64),
+#     'wide': tf.VarLenFeature(tf.int64),
+#     'iid': tf.FixedLenFeature([1], tf.int64),
+# }
 
 
 def parse_example(batch):
