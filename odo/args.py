@@ -51,18 +51,31 @@ parser.add_argument('--predict_out', type=str, default='ans.raw',
 
 FLAGS, un_parsed = parser.parse_known_args()
 
+# def init_log():
+# ct = os.listdir(FLAGS.log_dir)
+# log_name = FLAGS.log_dir + "/" + FLAGS.log_name + "_%d" % ct
 
-def init_log():
-    FORMAT = '%(asctime)-15s\t%(levelname)s\t%(message)s'
-    ct = os.listdir(FLAGS.log_dir)
-    log_name = FLAGS.log_dir + "/" + FLAGS.log_name + "_%d" % ct
-    print log_name
-    logging.basicConfig(format=FORMAT, filename=log_name, filemode='w', level=logging.DEBUG)
-    logger = logging.getLogger('odo')
+logger = logging.getLogger("odo")
+logger.setLevel(logging.INFO)
 
-    print FLAGS
-    logger.info(FLAGS)
-    return logger
+handler = logging.FileHandler('milk.log')
+handler.setLevel(logging.INFO)
+
+# formatter = logging.Formatter('%(asctime)s %(relativeCreated)d  %(message)s')
+formatter = logging.Formatter('%(asctime)s %(message)s')
+handler.setFormatter(formatter)
+
+logger.addHandler(handler)
+
+# handler = logging.StreamHandler()
+# logger.addHandler(handler)
+
+# print FLAGS
+# logger.info(FLAGS)
+#    return logger
 
 
-logger = init_log()
+
+
+if __name__ == '__main__':
+    logger.info("hello cat")
