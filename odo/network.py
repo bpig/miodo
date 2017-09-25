@@ -17,7 +17,7 @@ def inference_deep_wide(deep_feature_index, deep_feature_id, wide_feature_index,
     deep_logits, deep_predict = nn_layers(deep_features, None, FLAGS.num_deep_features, dims, keep_prob)
     wide_logits, wide_predict = wide_layers(wide_features, None, FLAGS.num_wide_features)
 
-    with tf.variable_scope('tot_sigmoid'):
+    with tf.variable_scope('output'):
         logits = deep_logits + wide_logits
         predict = tf.nn.sigmoid(logits)
     return logits, predict, instance_id
