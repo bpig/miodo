@@ -1,6 +1,27 @@
 from common import *
 from inputs import *
 from network import *
+from args import *
+
+prepare_env()
+
+log_name = FLAGS.dir + "/" + "%d.log" % FLAGS.idx
+
+logger = logging.getLogger("odo")
+logger.setLevel(logging.INFO)
+
+handler = logging.FileHandler(log_name)
+handler.setLevel(logging.INFO)
+
+formatter = logging.Formatter('%(asctime)s  %(message)s')
+
+handler.setFormatter(formatter)
+
+logger.addHandler(handler)
+
+handler = logging.StreamHandler()
+logger.addHandler(handler)
+logger.info(FLAGS)
 
 
 class TrainLog:
@@ -67,7 +88,6 @@ def train():
 
     global_step = tf.train.get_or_create_global_step()
 
-
     ada_optimizer = tf.train.AdagradOptimizer(0.01)
 
     deep_train_op = ada_optimizer.minimize(
@@ -94,7 +114,6 @@ def train():
                                              layers, 1.0)
     valid_loss = log_loss(valid_logits, valid_fea['label'])
 
-            
     init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
 
     saver = tf.train.Saver(write_version=tf.train.SaverDef.V2, max_to_keep=10)

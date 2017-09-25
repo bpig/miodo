@@ -47,6 +47,7 @@ parser.add_argument('--predict_out', type=str, default='ans.raw',
 
 FLAGS, un_parsed = parser.parse_known_args()
 
+
 def prepare_env():
     top_dir = "model/"
     if not os.path.exists(top_dir):
@@ -61,7 +62,9 @@ def prepare_env():
     FLAGS.model = FLAGS.dir + "/m%d" % FLAGS.idx
     logging.info("model_path", FLAGS.model)
 
-prepare_env()
+
+# prepare_env()
+
 
 def init_log():
     log_name = FLAGS.dir + "/" + "%d.log" % FLAGS.idx
@@ -85,8 +88,7 @@ def init_log():
     return logger
 
 
-logger = init_log()
+# logger = init_log()
 
 if __name__ == '__main__':
-    
     print FLAGS.idx

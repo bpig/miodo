@@ -14,8 +14,8 @@ def inference_deep_wide(deep_feature_index, deep_feature_id, wide_feature_index,
     wide_features = tf.sparse_merge(wide_feature_index, wide_feature_id, FLAGS.num_wide_features, name=None,
                                     already_sorted=False)
 
-    deep_logits, deep_predict = nn_layers(deep_features, None, FLAGS.num_deep_features, dims, keep_prob)
-    wide_logits, wide_predict = wide_layers(wide_features, None, FLAGS.num_wide_features)
+    deep_logits = nn_layers(deep_features, None, FLAGS.num_deep_features, dims, keep_prob)
+    wide_logits = wide_layers(wide_features, None, FLAGS.num_wide_features)
 
     with tf.variable_scope('output'):
         logits = deep_logits + wide_logits
@@ -27,34 +27,30 @@ def nn_layers(ids, values, num_features, dims, keep_prob=1):
     hidden1_units = dims[0]
     hidden2_units = dims[1]
     hidden3_units = dims[2]
-    with tf.variable_scope("embedding"):
+    with tf.variable_scope("embed"):
         weights_shape = [num_features, hidden1_units]
         biases_shape = [hidden1_units, ]
         hidden1 = sparse_embedding(ids, values, weights_shape, biases_shape)
         hidden1 = leaky_relu(hidden1)
 
-    # Hidden 2
     with tf.variable_scope('hidden2'):
         hidden2 = leaky_relu(full_connect_layer(hidden1, hidden1_units, hidden2_units))
         hidden2 = tf.nn.dropout(hidden2, keep_prob)
 
-    # Hidden 3
     with tf.variable_scope('hidden3'):
         hidden3 = leaky_relu(full_connect_layer(hidden2, hidden2_units, hidden3_units))
         hidden3 = tf.nn.dropout(hidden3, keep_prob)
 
-    # Sigmoid output
     with tf.variable_scope('sigmoid'):
         logits = full_connect_layer(hidden3, hidden3_units, 1)
-    return logits, tf.nn.sigmoid(logits)
+    return logits
 
 
 def wide_layers(ids, values, num_features):
     with tf.variable_scope("wide"):
         weights_shape = [num_features, 1]
         biases_shape = [1, ]
-        hidden1 = sparse_embedding(ids, values, weights_shape, biases_shape, True)
-    return hidden1, tf.nn.sigmoid(hidden1)
+        return sparse_embedding(ids, values, weights_shape, biases_shape, True)
 
 
 def sparse_embedding(ids, values, weights_shape, biases_shape, zero_init=False):
@@ -68,8 +64,7 @@ def sparse_embedding(ids, values, weights_shape, biases_shape, zero_init=False):
                              biases_shape,
                              initializer=tf.zeros_initializer)
 
-    result = tf.nn.embedding_lookup_sparse(weights, ids, values, combiner="sum") + biases
-    return result
+    return tf.nn.embedding_lookup_sparse(weights, ids, values, combiner="sum") + biases
 
 
 def full_connect_layer(inputs, layer1_units, layer2_units):
@@ -94,9 +89,7 @@ def weights_and_biases(layer1_units, layer2_units, zero_init=False):
 def log_loss(logits, labels):
     loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=tf.to_float(labels), logits=logits)
 
-    mean_loss = tf.reduce_mean(loss)
-
-    return mean_loss
+    return tf.reduce_mean(loss)
 
 
 def calc_deep_wide_metrics(sess, batch):
