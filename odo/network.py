@@ -7,12 +7,11 @@ def leaky_relu(z, name=None):
     return tf.maximum(0.01 * z, z, name=name)
 
 
-def inference_deep_wide(deep_feature_index, deep_feature_id, wide_feature_index, wide_feature_id, instance_id, dims,
-                        keep_prob=1):
-    deep_features = tf.sparse_merge(deep_feature_index, deep_feature_id, FLAGS.num_deep_features, name=None,
-                                    already_sorted=False)
-    wide_features = tf.sparse_merge(wide_feature_index, wide_feature_id, FLAGS.num_wide_features, name=None,
-                                    already_sorted=False)
+def inference_deep_wide(deep_features, wide_features, iid, dims, keep_prob=1):
+    # deep_features = tf.sparse_merge(deep_feature_index, deep_feature_id, FLAGS.num_deep_features, name=None,
+    #                                 already_sorted=False)
+    # wide_features = tf.sparse_merge(wide_feature_index, wide_feature_id, FLAGS.num_wide_features, name=None,
+    #                                 already_sorted=False)
 
     deep_logits = nn_layers(deep_features, None, FLAGS.num_deep_features, dims, keep_prob)
     wide_logits = wide_layers(wide_features, None, FLAGS.num_wide_features)
@@ -20,7 +19,7 @@ def inference_deep_wide(deep_feature_index, deep_feature_id, wide_feature_index,
     with tf.variable_scope('output'):
         logits = deep_logits + wide_logits
         predict = tf.nn.sigmoid(logits)
-    return logits, predict, instance_id
+    return logits, predict, iid
 
 
 def nn_layers(ids, values, num_features, dims, keep_prob=1):

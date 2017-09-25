@@ -1,5 +1,5 @@
 from common import *
-from inputs import *
+from data import *
 from network import *
 from args import *
 
@@ -77,12 +77,10 @@ def train():
     fea, valid_fea = read_data()
     layers = eval("[%s]" % FLAGS.layers)
 
-    train_logits, _, _ = inference_deep_wide(fea['deep_feature_index'],
-                                             fea['deep_feature_id'],
-                                             fea['wide_feature_index'],
-                                             fea['wide_feature_id'],
-                                             fea['instance_id'],
-                                             layers, FLAGS.keep_prob)
+    train_logits, _, _ = inference_deep_wide(
+        #        fea['deep_feature_id'], fea['wide_feature_id'], fea['instance_id'],
+        fea['deep'], fea['wide'], fea['iid'],
+        layers, FLAGS.keep_prob)
 
     train_loss = log_loss(train_logits, fea['label'])
     wide_vars, deep_vars = get_vars()
@@ -108,12 +106,10 @@ def train():
 
     tf.get_variable_scope().reuse_variables()
 
-    valid_logits, _, _ = inference_deep_wide(valid_fea['deep_feature_index'],
-                                             valid_fea['deep_feature_id'],
-                                             valid_fea['wide_feature_index'],
-                                             valid_fea['wide_feature_id'],
-                                             valid_fea['instance_id'],
-                                             layers, 1.0)
+    valid_logits, _, _ = inference_deep_wide(
+        # valid_fea['deep_feature_id'], valid_fea['wide_feature_id'], valid_fea['instance_id'],
+        valid_fea['deep'], valid_fea['wide'], valid_fea['iid'],
+        layers, 1.0)
     valid_loss = log_loss(valid_logits, valid_fea['label'])
 
     init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())

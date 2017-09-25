@@ -1,6 +1,6 @@
 import time
 
-from inputs import *
+from data import *
 from network import *
 from metrics import calc_deep_wide_metrics
 
