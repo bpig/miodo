@@ -79,10 +79,7 @@ def train():
     fea, valid_fea = read_data()
     layers = eval("[%s]" % FLAGS.layers)
 
-    train_logits, _, _ = inference_deep_wide(
-        #        fea['deep_feature_id'], fea['wide_feature_id'], fea['instance_id'],
-        fea['deep'], fea['wide'], fea['iid'],
-        layers, FLAGS.keep_prob)
+    train_logits, _, _ = inference_deep_wide(fea, layers, FLAGS.keep_prob)
 
     train_loss = log_loss(train_logits, fea['label'])
     wide_vars, deep_vars = get_vars()
@@ -108,10 +105,9 @@ def train():
 
     tf.get_variable_scope().reuse_variables()
 
-    valid_logits, _, _ = inference_deep_wide(
-        # valid_fea['deep_feature_id'], valid_fea['wide_feature_id'], valid_fea['instance_id'],
-        valid_fea['deep'], valid_fea['wide'], valid_fea['iid'],
-        layers, 1.0)
+    valid_logits, _, _ = inference_deep_wide(valid_fea, layers, 1.0)
+
+        
     valid_loss = log_loss(valid_logits, valid_fea['label'])
 
     init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
@@ -137,18 +133,6 @@ def train():
 
                 if step % FLAGS.save_per_batch == 0:
                     saver.save(sess, FLAGS.model, global_step=step)
-
-                # if step % FLAGS.valid_per_batch == 0:
-                #     start = time.time()
-                #
-                #     _, validation_mean_loss, validation_auc = calc_deep_wide_metrics(sess, validation_batch)
-                #
-                #     end = time.time()
-                #     total_validation = end - start
-                #     l = 'step: %09d, training_time: %f, validation_time: %f, validation_mean_loss: %f, validation_auc: %f' % (
-                #         step, total_training, total_validation, validation_mean_loss, validation_auc)
-                #     print l
-                #     logger.info(l)
 
                 if step >= FLAGS.max_steps:
                     logger.info('break by max_steps: %8d', FLAGS.max_steps)

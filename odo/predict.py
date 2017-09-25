@@ -33,7 +33,7 @@ def pred():
     top_dir = "model/%d/" % FLAGS.model
     model_path = top_dir + "m%s-%s" % (FLAGS.model, FLAGS.model_version)
     print model_path
-    ans = top_dir + "ans.raw"
+    ans = top_dir + "ans.raw.ema"
 
     with tf.Session(config=config) as sess:
         restore_model(sess, model_path)

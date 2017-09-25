@@ -13,8 +13,10 @@ def list_dir(top_dir, begin, end):
 
 def read_pred():
     top_dir = FLAGS.top_dir
-    b, e = eval("[%s]" % FLAGS.train)
+    b, e = eval("[%s]" % FLAGS.test)
+    print "data", b, e
     pred_dir = list_dir(top_dir, b, e)
+    print "pred dir len", len(pred_dir)
     fq = tf.train.string_input_producer(pred_dir, num_epochs=1)
     return read_batch(fq)
 
@@ -30,7 +32,7 @@ def read_data():
     print "train dir len", len(train_dir)
     print "valid dir len", len(valid_dir)
 
-    fq = tf.train.string_input_producer(train_dir)
+    fq = tf.train.string_input_producer(train_dir, num_epochs=1)
     fea = read_batch(fq)
 
     fq = tf.train.string_input_producer(valid_dir, num_epochs=None)
@@ -80,7 +82,9 @@ def read_batch(filename_queue):
     return parse_example(batch)
 
 
-feature_map = {
+def parse_example(batch):
+    if FLAGS.format == "old":
+        feature_map = {
     'label': tf.FixedLenFeature([1], tf.int64),
     'deep_feature_index': tf.VarLenFeature(tf.int64),
     'deep_feature_id': tf.VarLenFeature(tf.int64),
@@ -88,16 +92,15 @@ feature_map = {
     'wide_feature_id': tf.VarLenFeature(tf.int64),
     'instance_id': tf.FixedLenFeature([1], tf.int64),
 }
-
-# feature_map = {
-#     'label': tf.FixedLenFeature([1], tf.int64),
-#     'deep': tf.VarLenFeature(tf.int64),
-#     'wide': tf.VarLenFeature(tf.int64),
-#     'iid': tf.FixedLenFeature([1], tf.int64),
-# }
-
-
-def parse_example(batch):
+    else:
+        feature_map = {
+    'label': tf.FixedLenFeature([1], tf.int64),
+    'deep': tf.VarLenFeature(tf.int64),
+    'wide': tf.VarLenFeature(tf.int64),
+    'iid': tf.FixedLenFeature([1], tf.int64),
+}
+        
+        
     features = tf.parse_example(
         batch,
         features=feature_map

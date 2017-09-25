@@ -7,11 +7,11 @@ def leaky_relu(z, name=None):
     return tf.maximum(0.01 * z, z, name=name)
 
 
-def inference_deep_wide(deep_features, wide_features, iid, dims, keep_prob=1):
-    # deep_features = tf.sparse_merge(deep_feature_index, deep_feature_id, FLAGS.num_deep_features, name=None,
-    #                                 already_sorted=False)
-    # wide_features = tf.sparse_merge(wide_feature_index, wide_feature_id, FLAGS.num_wide_features, name=None,
-    #                                 already_sorted=False)
+def inference_deep_wide(fea, dims, keep_prob=1):
+    if FLAGS.format == "old":
+        deep_features, wide_features, iid = fea['deep_feature_id'], fea['wide_feature_id'], fea['instance_id']
+    else:
+        deep_features, wide_features, iid = fea['deep'], fea['wide'], fea['iid'],
 
     deep_logits = nn_layers(deep_features, None, FLAGS.deep_dim, dims, keep_prob)
     wide_logits = wide_layers(wide_features, None, FLAGS.wide_dim)

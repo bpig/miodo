@@ -17,15 +17,17 @@ parser.add_argument('--batch_size', type=int, default=128,
 parser.add_argument('--max_steps', type=int, default=200000,
                     help='Max number of steps to train')
 
-parser.add_argument('--log_per_batch', type=int, default=10,
+parser.add_argument('--log_per_batch', type=int, default=100,
                     help='Batch number of log')
 
-parser.add_argument('--save_per_batch', type=int, default=10000,
+parser.add_argument('--save_per_batch', type=int, default=5000,
                     help='Batch number of save model')
 
 parser.add_argument('--dir', type=str, default="final")
 
 parser.add_argument('--model_version', type=str, default="final")
+
+parser.add_argument('--format', type=str, default="old")
 
 parser.add_argument('--lamda', type=float, default=0.0)
 
