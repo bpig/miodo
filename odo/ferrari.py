@@ -73,7 +73,7 @@ def train():
                                              valid_fea['wide_feature_index'],
                                              valid_fea['wide_feature_id'],
                                              valid_fea['instance_id'],
-                                             layers, FLAGS.keep_prob)
+                                             layers, 1.0)
     valid_loss = log_loss(valid_logits, valid_fea['label'])
 
     ada_optimizer = tf.train.AdagradOptimizer(0.01)
@@ -99,11 +99,6 @@ def train():
     gpu_options = tf.GPUOptions(allow_growth=True)
     config = tf.ConfigProto(gpu_options=gpu_options)
 
-    if not os.path.exists(FLAGS.model_dir):
-        os.mkdir(FLAGS.model_dir)
-    model_path = FLAGS.model_dir + "/" + FLAGS.model_name
-    logging.info("model_path", model_path)
-
     with tf.Session(config=config) as sess:
         sess.run(init_op)
 
@@ -120,7 +115,7 @@ def train():
                     tl.run(step, t_loss, v_loss)
 
                 if step % FLAGS.save_per_batch == 0:
-                    saver.save(sess, model_path, global_step=step)
+                    saver.save(sess, FLAGS.model, global_step=step)
 
                 # if step % FLAGS.valid_per_batch == 0:
                 #     start = time.time()
@@ -140,10 +135,11 @@ def train():
         except tf.errors.OutOfRangeError as e:
             pass
         finally:
-            saver.save(sess, model_path + "-final")
+            saver.save(sess, FLAGS.model + "-final")
             coord.request_stop()
             coord.join(threads)
 
 
 if __name__ == '__main__':
+    prepare_env()
     train()
