@@ -15,10 +15,10 @@ def read_data():
     top_dir = FLAGS.top_dir
 
     train_dir = list_dir(top_dir, FLAGS.train_begin, FLAGS.train_end)
-    valid_dir = list_dir(top_dir, 29, 30)
+    valid_dir = list_dir(top_dir, FLAGS.valid_begin, FLAGS.valid_end)
 
-    logger.info("train dir len", len(train_dir))
-    logger.info("valid dir len", len(valid_dir))
+    # logger.info("train dir len", len(train_dir))
+    # logger.info("valid dir len", len(valid_dir))
 
     fq = tf.train.string_input_producer(train_dir)
     fea = read_batch(fq)

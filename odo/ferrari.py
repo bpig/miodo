@@ -16,13 +16,14 @@ class TrainLog:
         else:
             self.aa = self.aa * factor + (1 - factor) * loss
             self.bb = self.bb * factor + (1 - factor) * loss_valid
-        out = "%4d %.3f %.3f %.3f" % (gs, loss, self.aa, self.bb)
+        out = "%4d\t%.3f\t%.3f\t%.3f" % (gs, loss, self.aa, self.bb)
         logger.info(out)
 
 
 def max_norm(vars, axes=1, name="max_norm", collection="max_norm"):
     if FLAGS.lamda == 0.0:
         return
+    logger.info("max_norm")
     threshold = FLAGS.lamda
     for var in vars:
         if "weight" not in var.name:
@@ -66,15 +67,6 @@ def train():
 
     global_step = tf.train.get_or_create_global_step()
 
-    tf.get_variable_scope().reuse_variables()
-
-    valid_logits, _, _ = inference_deep_wide(valid_fea['deep_feature_index'],
-                                             valid_fea['deep_feature_id'],
-                                             valid_fea['wide_feature_index'],
-                                             valid_fea['wide_feature_id'],
-                                             valid_fea['instance_id'],
-                                             layers, 1.0)
-    valid_loss = log_loss(valid_logits, valid_fea['label'])
 
     ada_optimizer = tf.train.AdagradOptimizer(0.01)
 
@@ -89,9 +81,20 @@ def train():
 
     ema = tf.train.ExponentialMovingAverage(0.999, global_step)
     with tf.control_dependencies([deep_train_op, wide_train_op]):
-        with tf.control_dependencies([clip_all_weights]):
+        with tf.control_dependencies(clip_all_weights):
             train_op = ema.apply(tf.trainable_variables())
 
+    tf.get_variable_scope().reuse_variables()
+
+    valid_logits, _, _ = inference_deep_wide(valid_fea['deep_feature_index'],
+                                             valid_fea['deep_feature_id'],
+                                             valid_fea['wide_feature_index'],
+                                             valid_fea['wide_feature_id'],
+                                             valid_fea['instance_id'],
+                                             layers, 1.0)
+    valid_loss = log_loss(valid_logits, valid_fea['label'])
+
+            
     init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
 
     saver = tf.train.Saver(write_version=tf.train.SaverDef.V2, max_to_keep=10)

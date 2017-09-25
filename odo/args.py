@@ -37,13 +37,15 @@ parser.add_argument('--model_name', type=str, default='odo',
 parser.add_argument('--train_begin', type=int, default=11)
 parser.add_argument('--train_end', type=int, default=28)
 
+parser.add_argument('--valid_begin', type=int, default=29)
+parser.add_argument('--valid_end', type=int, default=30)
+
 parser.add_argument('--top_dir', type=str, default='')
 
 parser.add_argument('--predict_out', type=str, default='ans.raw',
                     help='predict output result file')
 
 FLAGS, un_parsed = parser.parse_known_args()
-
 
 def prepare_env():
     top_dir = "model/"
@@ -59,9 +61,10 @@ def prepare_env():
     FLAGS.model = FLAGS.dir + "/m%d" % FLAGS.idx
     logging.info("model_path", FLAGS.model)
 
+prepare_env()
 
 def init_log():
-    log_name = FLAGS.dir + "/" + "_%d.log" % FLAGS.idx
+    log_name = FLAGS.dir + "/" + "%d.log" % FLAGS.idx
 
     logger = logging.getLogger("odo")
     logger.setLevel(logging.INFO)
@@ -70,6 +73,7 @@ def init_log():
     handler.setLevel(logging.INFO)
 
     formatter = logging.Formatter('%(asctime)s  %(message)s')
+
     handler.setFormatter(formatter)
 
     logger.addHandler(handler)
@@ -84,5 +88,5 @@ def init_log():
 logger = init_log()
 
 if __name__ == '__main__':
-    prepare_env()
+    
     print FLAGS.idx
