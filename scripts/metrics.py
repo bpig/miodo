@@ -64,11 +64,10 @@ def logloss(filename):
         y = float(sp[0])
         p = float(sp[1])
 
-        # factor = 0.1
-        # if p < factor:
-        #     p = factor
-        # elif p > 1 - factor:
-        #     p = 1 - factor
+        # if p < 0.017:
+        #     p = 0.017
+        # elif p > 0.983:
+        #     p = 0.983
             
         sum += y * math.log(p) + (1-y)*math.log(1-p)
         count += 1

@@ -35,20 +35,15 @@ def _read_by_queue(data_file, batch_size=2048, num_epochs=1):
 
 
 def trans_data():
-    # top_dir = "data/"
-    train_dir = "data/test/"
+    top_dir = "data/"
 
-    # data_file = [ int(_[-5:]) for _ in os.listdir(train_dir) if _.startswith("part")]
-    # num = sorted(data_file)
-    # print num, len(num)
-    # for i in range(1000):
-    #     assert i == num[i], i
-
-    data_file = [train_dir + _ for _ in os.listdir(train_dir) if _.startswith("part")]
+    # data_file = [train_dir + _ for _ in os.listdir(train_dir) if _.startswith("part")]
     # valid_dir = "data/validate/"
     # data_file += [valid_dir + _ for _ in os.listdir(valid_dir) if _.startswith("part")]
     # data_file = data_file[:2]
+    data_file = ["data_v0/test/part-r-00000"]
     print len(data_file)
+
     data = _read_by_queue(data_file, 2048)
     with tf.Session() as sess:
         tf.global_variables_initializer().run()
@@ -67,6 +62,8 @@ def trans_data():
                 iid = iid.values.reshape(-1)
                 row = fid.indices[:, 0]
                 col = fid.values
+                print len(iid), col.shape
+                break
                 idx = 0
                 for i in range(label.shape[0]):
                     print >> fout, label[i],

@@ -79,7 +79,7 @@ def pred(cf, model, env, data):
 
         try:
             while not coord.should_stop():
-                ans = sess.run([prob, kv['label'], kv['iid']])
+                ans = sess.run([prob, kv['label'], kv['instance_id']])
                 dump_pred(ans, fout)
         except tf.errors.OutOfRangeError:
             print "up to epoch limits"
@@ -110,8 +110,11 @@ def train(cf, model, env, data):
 
     log = TrainLog(loss_writer)
 
+    graph_options = tf.GraphOptions(enable_bfloat16_sendrecv=True)
     gpu_options = tf.GPUOptions(allow_growth=True)
-    config = tf.ConfigProto(gpu_options=gpu_options)
+
+    config = tf.ConfigProto(gpu_options=gpu_options,
+                            graph_options=graph_options)
     with tf.Session(config=config) as sess:
         tf.global_variables_initializer().run()
         tf.local_variables_initializer().run()

@@ -2,56 +2,68 @@ from inputs import *
 from network import *
 
 import os
-import random
 
 
-def get_data_list(top_dir, begin, end):
+def predict_test_set():
+  #read data use cpu, and train model use gpu
+  with tf.device('/cpu:0'):
     ans = []
-    for d in range(begin, end + 1):
-        prefix = "%s/date=%2d/" % (top_dir, d)
-        ans += [prefix + _ for _ in os.listdir(prefix) if _.startswith("part")]
-    random.shuffle(ans)
-    return ans
+    for d in range(32, 33):
+      prefix = "data/date=%2d/" % d
+      ans += [prefix + _ for _ in os.listdir(prefix) if _.startswith("part")]
+    all_test_files = ans
+    
+    print "all_test_files", len(all_test_files)
 
+    #read test data
+    filename_queue = tf.train.string_input_producer(all_test_files, num_epochs=1)
+    test_batch = read_batch(filename_queue, 0)
 
-def pred():
-    top_dir = "dw/"
-    valid_data = get_data_list(top_dir, 29, 30)
+  #build test net
+  _, test_predict, test_instance_id = inference_deep_wide(test_batch['deep_feature_index'],
+                                                          test_batch['deep_feature_id'],
+                                                          test_batch['wide_feature_index'],
+                                                          test_batch['wide_feature_id'],
+                                                          test_batch['instance_id'],
+                                                          layers, 1)
 
-    filename_queue = tf.train.string_input_producer(valid_data, num_epochs=1)
-    batch = read_batch(filename_queue)
+  #global step
+  global_step = tf.Variable(0, name='global_step', trainable=False)
 
-    logits = inference_deep_wide(batch)
-    prob = tf.sigmoid(logits)
+  #saver for reload training model
+  saver = tf.train.Saver(write_version=tf.train.SaverDef.V2,
+                         max_to_keep=100)
 
-    saver = tf.train.Saver()
+  #config
+  gpu_options = tf.GPUOptions(allow_growth=True)
+  config = tf.ConfigProto(gpu_options=gpu_options)
+  model_out = "model/zl"
+  
+  with tf.Session(config=config) as sess:
+    #read training model for test
+    model_init = model_out + "-final"
+    saver.restore(sess, model_init)
 
-    # graph_options = tf.GraphOptions(enable_bfloat16_sendrecv=True)
-    gpu_options = tf.GPUOptions(allow_growth=True)
-    config = tf.ConfigProto(gpu_options=gpu_options)
+    predict_result_file = open("ans.raw", "w")
 
-    model_out = "model/zilong-final"
+    sess.run(tf.local_variables_initializer())
+    coord = tf.train.Coordinator()
+    threads = tf.train.start_queue_runners(coord=coord, sess=sess)
+    try:
+      while True:
+        step, instance_id, predict,label = sess.run([global_step, test_instance_id, test_predict, test_batch['label']])
 
-    with tf.Session(config=config) as sess:
-        saver.restore(sess, model_out)
+        size_batch = len(instance_id)
 
-        fout = open("pred_result", "w")
+        for i in range(size_batch):
+          print >> predict_result_file, "%d %f %d" % (label[i][0], predict[i][0], instance_id[i][0])
 
-        sess.run(tf.local_variables_initializer())
-        coord = tf.train.Coordinator()
-        threads = tf.train.start_queue_runners(coord=coord)
-        try:
-            while True:
-                lb, iid, pre = sess.run([batch['label'], batch['iid'], prob])
-                for i in range(len(iid)):
-                    print >> fout, "%d %f %s" % (lb[i][0], pre[i][0], iid[i][0])
-
-        except tf.errors.OutOfRangeError as e:
-            pass
-        finally:
-            coord.request_stop()
-            coord.join(threads)
+    except tf.errors.OutOfRangeError as e:
+      coord.request_stop(e)
+    finally:
+      coord.request_stop()
+      coord.join(threads)
 
 
 if __name__ == '__main__':
-    pred()
+  predict_test_set()

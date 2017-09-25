@@ -74,41 +74,41 @@ class NET(object):
         wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
         deep_vars = list(set(vars) - set(wide_vars))
 
-        def max_norm_regularizer(weights, axes=1, name="max_norm", collection="max_norm"):
-            threshold = 0.1
-            clipped = tf.clip_by_norm(weights, clip_norm=threshold, axes=axes)
-            clip_weights = tf.assign(weights, clipped, name=name)
-            tf.add_to_collection(collection, clip_weights)
+        # def max_norm_regularizer(weights, axes=1, name="max_norm", collection="max_norm"):
+        #     threshold = 0.1
+        #     clipped = tf.clip_by_norm(weights, clip_norm=threshold, axes=axes)
+        #     clip_weights = tf.assign(weights, clipped, name=name)
+        #     tf.add_to_collection(collection, clip_weights)
 
-        for var in deep_vars:
-            if "kernel" in var.name:
-                max_norm_regularizer(var, name=var.name[:-2] + "_norm")
+        # for var in deep_vars:
+        #     if "kernel" in var.name:
+        #         max_norm_regularizer(var, name=var.name[:-2] + "_norm")
 
         opts = []
         if self.model == "WDE":
-            ftrl = tf.train.FtrlOptimizer(0.1, l1_regularization_strength=60.0)
+            ftrl = tf.train.FtrlOptimizer(0.1, l1_regularization_strength=1.0)
             wide_opt = ftrl.minimize(loss, var_list=wide_vars)
         else:
             wide_opt = tf.no_op("wide_placehold")
         opts += [wide_opt]
 
-        emb_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="embed")
-        print "emb", emb_vars
-        adam1 = tf.train.AdamOptimizer(learning_rate=lr*2*2)
-        emb_opt = adam1.minimize(loss, var_list=emb_vars)
-        opts += [emb_opt]
-        deep_vars = list(set(deep_vars) - set(emb_vars))
+        # emb_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="embed")
+        # print "emb", emb_vars
+        # adam1 = tf.train.AdamOptimizer(learning_rate=lr*2*2)
+        # emb_opt = adam1.minimize(loss, var_list=emb_vars)
+        # opts += [emb_opt]
+        # deep_vars = list(set(deep_vars) - set(emb_vars))
 
-        l1_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="deep/layer1")
-        print "l1", l1_vars
-        adam2 = tf.train.AdamOptimizer(learning_rate=lr*2)
-        l1_opt = adam2.minimize(loss, var_list=l1_vars)
-        opts += [l1_opt]
-        deep_vars = list(set(deep_vars) - set(l1_vars))
+        # l1_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="deep/layer1")
+        # print "l1", l1_vars
+        # adam2 = tf.train.AdamOptimizer(learning_rate=lr*2)
+        # l1_opt = adam2.minimize(loss, var_list=l1_vars)
+        # opts += [l1_opt]
+        # deep_vars = list(set(deep_vars) - set(l1_vars))
 
         print "other", deep_vars
-        adam = tf.train.AdamOptimizer(learning_rate=lr)
-        # adam = tf.train.AdagradOptimizer(learning_rate=lr)
+        # adam = tf.train.AdamOptimizer(learning_rate=lr)
+        adam = tf.train.AdagradOptimizer(learning_rate=0.01)
         deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
         opts += [deep_opt]
         
