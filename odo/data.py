@@ -12,14 +12,15 @@ def list_dir(top_dir, begin, end):
 
 
 def read_data():
-    logger = logging.getLogger()    
     top_dir = FLAGS.top_dir
 
-    train_dir = list_dir(top_dir, FLAGS.train_begin, FLAGS.train_end)
-    valid_dir = list_dir(top_dir, FLAGS.valid_begin, FLAGS.valid_end)
+    b, e = eval("[%s]" % FLAGS.train)
+    train_dir = list_dir(top_dir, b, e)
+    b, e = eval("[%s]" % FLAGS.valid)
+    valid_dir = list_dir(top_dir, b, e)
 
-    print("train dir len", len(train_dir))
-    print("valid dir len", len(valid_dir))
+    print "train dir len", len(train_dir)
+    print "valid dir len", len(valid_dir)
 
     fq = tf.train.string_input_producer(train_dir)
     fea = read_batch(fq)

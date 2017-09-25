@@ -13,8 +13,8 @@ def inference_deep_wide(deep_features, wide_features, iid, dims, keep_prob=1):
     # wide_features = tf.sparse_merge(wide_feature_index, wide_feature_id, FLAGS.num_wide_features, name=None,
     #                                 already_sorted=False)
 
-    deep_logits = nn_layers(deep_features, None, FLAGS.num_deep_features, dims, keep_prob)
-    wide_logits = wide_layers(wide_features, None, FLAGS.num_wide_features)
+    deep_logits = nn_layers(deep_features, None, FLAGS.deep_dim, dims, keep_prob)
+    wide_logits = wide_layers(wide_features, None, FLAGS.wide_dim)
 
     with tf.variable_scope('output'):
         logits = deep_logits + wide_logits
@@ -103,8 +103,8 @@ def calc_deep_wide_metrics(sess, batch):
     instance_id = tf.placeholder(tf.int64)
 
     tf.get_variable_scope().reuse_variables()
-    logits, predict, _ = inference_deep_wide(deep_feature_index, deep_feature_id, wide_feature_index, wide_feature_id,
-                                             instance_id, layers)
+    logits, predict, _ = inference_deep_wide(deep_feature_id, wide_feature_id,
+                                             instance_id, [])
 
     sum_loss, _ = log_loss(logits, label)
     _, auc_update_op = tf.contrib.metrics.streaming_auc(predict, label, num_thresholds=1000)

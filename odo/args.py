@@ -5,14 +5,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--layers', type=str, default="64,64,64",
                     help='Network hidden_layers')
 
-parser.add_argument('--num_deep_features', type=int, default=3000000,
+parser.add_argument('--deep_dim', type=int, default=3000000,
                     help='Number of deep features')
 
-parser.add_argument('--num_wide_features', type=int, default=6000000,
+parser.add_argument('--wide_dim', type=int, default=6000000,
                     help='Number of wide features')
 
 parser.add_argument('--batch_size', type=int, default=128,
                     help='Batch size to train')
+
 parser.add_argument('--max_steps', type=int, default=200000,
                     help='Max number of steps to train')
 
@@ -29,16 +30,12 @@ parser.add_argument('--lamda', type=float, default=0.0)
 
 parser.add_argument('--keep_prob', type=float, default=0.5)
 
-parser.add_argument('--dir', type=str, default='model')
-
 parser.add_argument('--model_name', type=str, default='odo',
                     help='model name')
 
-parser.add_argument('--train_begin', type=int, default=11)
-parser.add_argument('--train_end', type=int, default=27)
+parser.add_argument('--train', type=str, default="11,27")
 
-parser.add_argument('--valid_begin', type=int, default=29)
-parser.add_argument('--valid_end', type=int, default=30)
+parser.add_argument('--valid', type=str, default="29,30")
 
 parser.add_argument('--top_dir', type=str, default='')
 
