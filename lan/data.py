@@ -7,6 +7,7 @@ import xgboost as xgb
 import os
 import sys
 import numpy as np
+import time
 
 def get_data(dirname):
     dirname += "/"
@@ -34,9 +35,8 @@ if __name__ == "__main__":
     col = []
     labels = []
     print "======== load ==========="
-    print time.ctim(), "begin"        
+    print time.ctime(), "begin"        
     for i, (label, fid, fval) in enumerate(get_data(dirname)):
-        print i
         fid = [int(_.split("_")[1]) for _ in fid]
         
         ct = len(fid)
@@ -44,10 +44,10 @@ if __name__ == "__main__":
         col += [fid]
         data += [fval]
         labels += [label]
-    print time.ctim(), "end"            
+    print time.ctime(), "end"            
 
     print "======== dump ==========="    
-    print time.ctim(), "begin"    
+    print time.ctime(), "begin"    
         
     data = np.concatenate(data)
     row = np.concatenate(row)
@@ -60,10 +60,10 @@ if __name__ == "__main__":
     print dm.get_label()
 
     dm.save_binary("dm.xgb")
-    print time.ctim(), "finish"
+    print time.ctime(), "finish"
 
     print "======== split ==========="
-    print time.ctim(), "begin"
+    print time.ctime(), "begin"
     row = dm.num_row()
     ct = int(row * 0.95)
     print ct, row
@@ -75,4 +75,4 @@ if __name__ == "__main__":
 
     train.save_binary("tr.xgb")
     test.save_binary("te.xgb")    
-    print time.ctim(), "finish"
+    print time.ctime(), "finish"

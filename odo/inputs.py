@@ -24,7 +24,7 @@ def read_data():
     fq = tf.train.string_input_producer(train_dir)
     fea = read_batch(fq)
 
-    fq = tf.train.string_input_producer(valid_dir, num_epochs=1)
+    fq = tf.train.string_input_producer(valid_dir, num_epochs=None)
     valid_fea = read_batch(fq)
     return fea, valid_fea
 
