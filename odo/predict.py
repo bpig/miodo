@@ -22,8 +22,7 @@ def restore_model(sess, model_path, use_ema=True):
 def pred():
     fea = read_pred()
     layers = eval("[%s]" % FLAGS.layers)
-    _, pred, iid = inference_deep_wide(
-        fea['deep_feature_id'], fea['wide_feature_id'], fea['instance_id'], layers, 1)
+    _, pred, iid = inference_deep_wide(fea, layers, 1)
 
     global_step = tf.train.get_or_create_global_step()
 
@@ -37,10 +36,9 @@ def pred():
 
     with tf.Session(config=config) as sess:
         restore_model(sess, model_path)
-
+        sess.run(tf.local_variables_initializer())
         fout = open(ans, "w")
 
-        sess.run(tf.local_variables_initializer())
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord, sess=sess)
         try:

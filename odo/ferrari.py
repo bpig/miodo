@@ -104,14 +104,10 @@ def train():
             train_op = ema.apply(tf.trainable_variables())
 
     tf.get_variable_scope().reuse_variables()
-
     valid_logits, _, _ = inference_deep_wide(valid_fea, layers, 1.0)
-
-        
     valid_loss = log_loss(valid_logits, valid_fea['label'])
 
     init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
-
     saver = tf.train.Saver(write_version=tf.train.SaverDef.V2, max_to_keep=10)
 
     gpu_options = tf.GPUOptions(allow_growth=True)

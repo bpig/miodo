@@ -11,6 +11,13 @@ import math
 from functools import partial
 import sklearn
 import cPickle as pickle
+from scipy.sparse import coo_matrix
+
+try:
+    import xgboost as xgb
+except:
+    print "load xgboost fail"
+    pass
 
 if __name__ == "__main__":
     pass
