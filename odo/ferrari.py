@@ -16,68 +16,74 @@ class TrainLog:
         else:
             self.aa = self.aa * factor + (1 - factor) * loss
             self.bb = self.bb * factor + (1 - factor) * loss_valid
-        out = "%d %.3f %.3f %.3f" % (gs, loss, self.aa, self.bb)
-        print out
+        out = "%4d %.3f %.3f %.3f" % (gs, loss, self.aa, self.bb)
+        logger.info(out)
+
+
+def max_norm(vars, axes=1, name="max_norm", collection="max_norm"):
+    if FLAGS.lamda == 0.0:
+        return
+    threshold = FLAGS.lamda
+    for var in vars:
+        if "weight" not in var.name:
+            continue
+        name = var.name[:-2] + "_norm"
+        clipped = tf.clip_by_norm(var, clip_norm=threshold, axes=axes)
+        clip_weights = tf.assign(var, clipped, name=name)
+        tf.add_to_collection(collection, clip_weights)
+
+
+def get_vars():
+    vars = tf.trainable_variables()
+
+    wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
+    for var in wide_vars:
+        logging.info(var, var.name, var.get_shape())
+    logging.info('wide_vars', len(wide_vars))
+
+    deep_vars = list(set(vars) - set(wide_vars))
+    for var in deep_vars:
+        logging.info(var, var.name, var.get_shape())
+    logging.info('deep_vars', len(deep_vars))
+
+    return wide_vars, deep_vars
 
 
 def train():
-    with tf.device('/cpu:0'):
+    fea, valid_fea = read_data()
+    layers = eval("[%s]" % FLAGS.layers)
 
-        training_fq = tf.train.string_input_producer(all_train_files)
-        training_batch = read_batch(training_fq, FLAGS.is_shuffle)
+    train_logits, _, _ = inference_deep_wide(fea['deep_feature_index'],
+                                             fea['deep_feature_id'],
+                                             fea['wide_feature_index'],
+                                             fea['wide_feature_id'],
+                                             fea['instance_id'],
+                                             layers, FLAGS.keep_prob)
 
-        validation_fq = tf.train.string_input_producer(all_valid_files, num_epochs=1)
-        validation_batch = read_all_batch(validation_fq)
+    train_loss = log_loss(train_logits, fea['label'])
+    wide_vars, deep_vars = get_vars()
+    max_norm(deep_vars)
 
-    # build training net
-    training_logits, _, _ = inference_deep_wide(training_batch['deep_feature_index'],
-                                                training_batch['deep_feature_id'],
-                                                training_batch['wide_feature_index'],
-                                                training_batch['wide_feature_id'],
-                                                training_batch['instance_id'],
-                                                layers, 0.5)
+    global_step = tf.train.get_or_create_global_step()
 
-    # build loss function
-    training_sum_loss, training_mean_loss = log_loss(training_logits,
-                                                     training_batch['label'])
+    tf.get_variable_scope().reuse_variables()
 
-    trainable_var = tf.trainable_variables()
+    valid_logits, _, _ = inference_deep_wide(valid_fea['deep_feature_index'],
+                                             valid_fea['deep_feature_id'],
+                                             valid_fea['wide_feature_index'],
+                                             valid_fea['wide_feature_id'],
+                                             valid_fea['instance_id'],
+                                             layers, FLAGS.keep_prob)
+    valid_loss = log_loss(valid_logits, valid_fea['label'])
 
-    trainable_wide_var = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide_hidden1')
-    for var in trainable_wide_var:
-        print(var, var.name, var.get_shape())
-    print 'trainable_wide_var', len(trainable_wide_var)
-
-    trainable_deep_var = []
-    for var in trainable_var:
-        if var not in trainable_wide_var:
-            trainable_deep_var.append(var)
-            print(var, var.name, var.get_shape())
-    print 'trainable_deep_var', len(trainable_deep_var)
-
-    def max_norm_regularizer(weights, axes=1, name="max_norm", collection="max_norm"):
-        threshold = 0.1
-        clipped = tf.clip_by_norm(weights, clip_norm=threshold, axes=axes)
-        clip_weights = tf.assign(weights, clipped, name=name)
-        tf.add_to_collection(collection, clip_weights)
-
-    for var in trainable_deep_var:
-        if "weight" in var.name:
-            max_norm_regularizer(var, name=var.name[:-2] + "_norm")
-
-    # global step
-    global_step = tf.Variable(0, name='global_step', trainable=False)
-    # deep training optimizer, update the net parameters
     ada_optimizer = tf.train.AdagradOptimizer(0.01)
 
-    deep_train_op = ada_optimizer.minimize(training_mean_loss,
-                                           global_step=global_step,
-                                           var_list=trainable_deep_var)
+    deep_train_op = ada_optimizer.minimize(
+        train_loss, global_step=global_step, var_list=deep_vars)
 
-    # wide training optimizer, update the net parameters
     ftrl_optimizer = tf.train.FtrlOptimizer(0.1, l1_regularization_strength=1.0)
-    wide_train_op = ftrl_optimizer.minimize(training_mean_loss,
-                                            var_list=trainable_wide_var)
+    wide_train_op = ftrl_optimizer.minimize(
+        train_loss, var_list=wide_vars)
 
     clip_all_weights = tf.get_collection("max_norm")
 
@@ -93,54 +99,48 @@ def train():
     gpu_options = tf.GPUOptions(allow_growth=True)
     config = tf.ConfigProto(gpu_options=gpu_options)
 
+    if not os.path.exists(FLAGS.model_dir):
+        os.mkdir(FLAGS.model_dir)
+    model_path = FLAGS.model_dir + "/" + FLAGS.model_name
+    logging.info("model_path", model_path)
+
     with tf.Session(config=config) as sess:
         sess.run(init_op)
 
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord, sess=sess)
 
-        # model saved path
-        model_out = "model/zl"
-        print "model_out =", model_out
-        total_training = 0
-        ll = TrainLog()
+        tl = TrainLog()
         try:
             while not coord.should_stop():
-                start = time.time()
-
-                _, sum_loss, mean_loss, step = sess.run([train_op,
-                                                         training_sum_loss, training_mean_loss, global_step])
-
-                end = time.time()
-                total_training = end - start
+                _, t_loss, v_loss, step = sess.run([
+                    train_op, train_loss, valid_loss, global_step])
 
                 if step % FLAGS.log_per_batch == 0:
-                    ll.run(step, sum_loss, mean_loss)
+                    tl.run(step, t_loss, v_loss)
 
-                # save model
                 if step % FLAGS.save_per_batch == 0:
-                    saver.save(sess, model_out, global_step=step)
+                    saver.save(sess, model_path, global_step=step)
 
-                # validation
-                if step % FLAGS.valid_per_batch == 0:
-                    start = time.time()
-
-                    _, validation_mean_loss, validation_auc = calc_deep_wide_metrics(sess, validation_batch)
-
-                    end = time.time()
-                    total_validation = end - start
-                    l = 'step: %09d, training_time: %f, validation_time: %f, validation_mean_loss: %f, validation_auc: %f' % (
-                        step, total_training, total_validation, validation_mean_loss, validation_auc)
-                    print l
-                    logger.info(l)
+                # if step % FLAGS.valid_per_batch == 0:
+                #     start = time.time()
+                #
+                #     _, validation_mean_loss, validation_auc = calc_deep_wide_metrics(sess, validation_batch)
+                #
+                #     end = time.time()
+                #     total_validation = end - start
+                #     l = 'step: %09d, training_time: %f, validation_time: %f, validation_mean_loss: %f, validation_auc: %f' % (
+                #         step, total_training, total_validation, validation_mean_loss, validation_auc)
+                #     print l
+                #     logger.info(l)
 
                 if step >= FLAGS.max_steps:
-                    logger.info('training finished with step: %09d, max_steps: %09d', step, FLAGS.max_steps)
+                    logger.info('break by max_steps: %8d', FLAGS.max_steps)
                     break
         except tf.errors.OutOfRangeError as e:
             pass
         finally:
-            saver.save(sess, model_out + "-final")
+            saver.save(sess, model_path + "-final")
             coord.request_stop()
             coord.join(threads)
 

@@ -1,29 +1,35 @@
 from args import *
-import time
+from common import *
+
+
+def list_dir(top_dir, begin, end):
+    ans = []
+    for d in range(begin, end + 1):
+        prefix = "%s/date=%2d/" % (top_dir, d)
+        ans += [prefix + _ for _ in os.listdir(prefix) if _.startswith("part")]
+    random.shuffle(ans)
+    return ans
 
 
 def read_data():
-    ans = []
-    for d in range(11, 28):
-        prefix = "data/date=%2d/" % d
-        ans += [prefix + _ for _ in os.listdir(prefix) if _.startswith("part")]
-    random.shuffle(ans)
+    top_dir = FLAGS.top_dir
 
-    train_dir = ans
+    train_dir = list_dir(top_dir, FLAGS.train_begin, FLAGS.train_end)
+    valid_dir = list_dir(top_dir, 29, 30)
 
-    print "train dir len", len(train_dir)
+    logger.info("train dir len", len(train_dir))
+    logger.info("valid dir len", len(valid_dir))
 
-    ans = []
-    for d in range(29, 31):
-        prefix = "data/date=%2d/" % d
-        ans += [prefix + _ for _ in os.listdir(prefix) if _.startswith("part")]
-    all_valid_files = ans
+    fq = tf.train.string_input_producer(train_dir)
+    fea = read_batch(fq)
 
-    print "valid dir len", len(all_valid_files)
+    fq = tf.train.string_input_producer(valid_dir, num_epochs=1)
+    valid_fea = read_batch(fq)
+    return fea, valid_fea
 
 
 def read_all_batch(filename_queue):
-    features = read_batch(filename_queue, 0)
+    features = read_batch(filename_queue)
     init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
     data = []
 
@@ -49,31 +55,24 @@ def read_all_batch(filename_queue):
     return data
 
 
-def read_batch(filename_queue, is_shuffle):
-    serialized_example = read_and_decode(filename_queue)
+def read_batch(filename_queue):
+    reader = tf.TFRecordReader()
+    _, raw = reader.read(filename_queue)
 
-    min_after_dequeue = 20000
-    capacity = 200000
-    batch_serialized_example = tf.train.shuffle_batch(
-        [serialized_example],
+    batch = tf.train.shuffle_batch(
+        [raw],
         batch_size=FLAGS.batch_size,
-        num_threads=FLAGS.num_threads,
-        capacity=capacity,
-        min_after_dequeue=min_after_dequeue,
+        num_threads=12,
+        capacity=200000,
+        min_after_dequeue=20000,
         allow_smaller_final_batch=True
     )
-    return parse_example(batch_serialized_example)
+    return parse_example(batch)
 
 
-def read_and_decode(filename_queue):
-    reader = tf.TFRecordReader()
-    _, serialized_example = reader.read(filename_queue)
-    return serialized_example
-
-
-def parse_example(batch_serialized_example):
+def parse_example(batch):
     features = tf.parse_example(
-        batch_serialized_example,
+        batch,
         features={
             'label': tf.FixedLenFeature([1], tf.int64),
             'deep_feature_index': tf.VarLenFeature(tf.int64),

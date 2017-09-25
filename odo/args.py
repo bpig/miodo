@@ -28,8 +28,12 @@ parser.add_argument('--valid_per_batch', type=int, default=10000,
 parser.add_argument('--log_dir', type=str, default='log',
                     help='log directory')
 
-parser.add_argument('--log_name', type=str, default='odo.log',
+parser.add_argument('--log_name', type=str, default='odo',
                     help='log name')
+
+parser.add_argument('--lamda', type=float, default=0.0)
+
+parser.add_argument('--keep_prob', type=float, default=0.5)
 
 parser.add_argument('--model_dir', type=str, default='model',
                     help='model directory')
@@ -37,14 +41,10 @@ parser.add_argument('--model_dir', type=str, default='model',
 parser.add_argument('--model_name', type=str, default='odo',
                     help='model name')
 
-parser.add_argument('--train_dir', type=str, default='',
-                    help='training data directory')
+parser.add_argument('--train_begin', type=int, default=11)
+parser.add_argument('--train_end', type=int, default=28)
 
-parser.add_argument('--valid_dir', type=str, default='',
-                    help='validation data directory')
-
-parser.add_argument('--test_dir', type=str, default='',
-                    help='test data directory')
+parser.add_argument('--top_dir', type=str, default='')
 
 parser.add_argument('--predict_out', type=str, default='ans.raw',
                     help='predict output result file')
@@ -53,34 +53,30 @@ FLAGS, un_parsed = parser.parse_known_args()
 
 
 def init_log():
-    # ct = os.listdir(FLAGS.log_dir)
-    # log_name = FLAGS.log_dir + "/" + FLAGS.log_name + "_%d" % ct
+    if not os.path.exists(FLAGS.log_dir):
+        os.mkdir(FLAGS.log_dir)
+    ct = len(os.listdir(FLAGS.log_dir))
+    log_name = FLAGS.log_dir + "/" + FLAGS.log_name + "_%d.log" % ct
 
     logger = logging.getLogger("odo")
     logger.setLevel(logging.INFO)
 
-    handler = logging.FileHandler('milk.log')
+    handler = logging.FileHandler(log_name)
     handler.setLevel(logging.INFO)
 
-    # formatter = logging.Formatter('%(asctime)s %(relativeCreated)d  %(message)s')
-    formatter = logging.Formatter('%(asctime)s %(message)s')
+    formatter = logging.Formatter('%(asctime)s  %(message)s')
     handler.setFormatter(formatter)
 
     logger.addHandler(handler)
 
     handler = logging.StreamHandler()
     logger.addHandler(handler)
+    logger.info(FLAGS)
+
     return logger
 
 
 logger = init_log()
-
-# print FLAGS
-# logger.info(FLAGS)
-#    return logger
-
-
-
 
 if __name__ == '__main__':
     logger.info("hello cat")

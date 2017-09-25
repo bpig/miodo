@@ -5,6 +5,7 @@ import time
 import os
 from os.path import join, getsize
 
+
 def scoreAUC(labels, probs):
     i_sorted = sorted(xrange(len(probs)), key=lambda i: probs[i],
                       reverse=True)
@@ -17,18 +18,19 @@ def scoreAUC(labels, probs):
     N = 0;
     last_prob = probs[i_sorted[0]] + 1.0
     for i in xrange(len(probs)):
-        if last_prob != probs[i_sorted[i]]: 
-            auc_temp += (TP+TP_pre) * (FP-FP_pre) / 2.0        
+        if last_prob != probs[i_sorted[i]]:
+            auc_temp += (TP + TP_pre) * (FP - FP_pre) / 2.0
             TP_pre = TP
             FP_pre = FP
             last_prob = probs[i_sorted[i]]
         if labels[i_sorted[i]] == 1:
-          TP = TP + 1
+            TP = TP + 1
         else:
-          FP = FP + 1
-    auc_temp += (TP+TP_pre) * (FP-FP_pre) / 2.0
+            FP = FP + 1
+    auc_temp += (TP + TP_pre) * (FP - FP_pre) / 2.0
     auc = auc_temp / (TP * FP)
     return auc
+
 
 def read_file(filename):
     labels = []
@@ -37,16 +39,16 @@ def read_file(filename):
         sp = line.strip().split()
         try:
             label = int(sp[0])
-            if label<=0:
-                label=0
+            if label <= 0:
+                label = 0
             else:
-                label=1
+                label = 1
             prob = float(sp[1])
         except:
             print line
             continue
         labels.append(label)
-       	probs.append(prob)
+        probs.append(prob)
     return (labels, probs)
 
 
@@ -54,6 +56,7 @@ def auc(filename):
     labels, probs = read_file(filename)
     auc = scoreAUC(labels, probs)
     print("AUC  : %f" % auc)
+
 
 def logloss(filename):
     sum = 0.0
@@ -68,17 +71,18 @@ def logloss(filename):
         #     p = 0.017
         # elif p > 0.983:
         #     p = 0.983
-            
-        sum += y * math.log(p) + (1-y)*math.log(1-p)
+
+        sum += y * math.log(p) + (1 - y) * math.log(1 - p)
         count += 1
-    ret = -sum/count
+    ret = -sum / count
     print("logloss: %f" % ret)
     # outfile.write(str(ret) + "\n")
-    
-if __name__=="__main__":
+
+
+if __name__ == "__main__":
     """usage : ./metrics.py filename"""
     filename = sys.argv[1]
-    mtime  = time.ctime(os.stat(filename).st_mtime)
+    mtime = time.ctime(os.stat(filename).st_mtime)
     filesize = "%.3fMB" % (getsize(filename) / 1024.0 / 1024.0)
     print mtime, filename, filesize
 
