@@ -95,7 +95,6 @@ def train(cf, model, env, data):
     logits = model.inference(kv, 0.5)
     loss = model.loss_op(kv['label'], logits)
 
-    # summary = tf.summary.scalar("loss", loss)
     opt = model.train_op(loss)
 
     tf.get_variable_scope().reuse_variables()

@@ -4,7 +4,22 @@ from network import *
 import os
 
 
-def predict_test_set():
+def restore_model(sess, model_path, use_ema=True):
+    global_step = tf.train.get_or_create_global_step()
+    if use_ema:
+        ema = tf.train.ExponentialMovingAverage(0.995, global_step)
+        ema.apply(tf.trainable_variables())
+        variables_to_restore = ema.variables_to_restore()
+        saver = tf.train.Saver(
+            variables_to_restore,
+            write_version=tf.train.SaverDef.V2, max_to_keep=10)
+    else:
+        saver = tf.train.Saver(
+            write_version=tf.train.SaverDef.V2, max_to_keep=10)
+    saver.restore(sess, model_path)
+
+
+def pred():
     fea = read_pred()
     layers = eval("[%s]" % FLAGS.layers)
     _, pred, iid = inference_deep_wide(
@@ -12,19 +27,18 @@ def predict_test_set():
 
     global_step = tf.train.get_or_create_global_step()
 
-    saver = tf.train.Saver(write_version=tf.train.SaverDef.V2, max_to_keep=10)
-
     gpu_options = tf.GPUOptions(allow_growth=True)
     config = tf.ConfigProto(gpu_options=gpu_options)
 
-    FLAGS.model = "model/%d/m%d" % (FLAGS.model, FLAGS.model)
-    model_path = FLAGS.model + "-" + FLAGS.model_version
+    top_dir = "model/%d/" % FLAGS.model
+    model_path = top_dir + "m%s-%s" % (FLAGS.model, FLAGS.model_version)
     print model_path
+    ans = top_dir + "ans.raw"
 
     with tf.Session(config=config) as sess:
-        saver.restore(sess, model_path)
+        restore_model(sess, model_path)
 
-        fout = open(FLAGS.ans, "w")
+        fout = open(ans, "w")
 
         sess.run(tf.local_variables_initializer())
         coord = tf.train.Coordinator()
@@ -45,4 +59,4 @@ def predict_test_set():
 
 
 if __name__ == '__main__':
-    predict_test_set()
+    pred()

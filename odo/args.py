@@ -41,9 +41,7 @@ parser.add_argument('--valid', type=str, default="29,30")
 
 parser.add_argument('--test', type=str, default="32,33")
 
-parser.add_argument('--top_dir', type=str, default='')
-
-parser.add_argument('--ans', type=str, default='ans.raw')
+parser.add_argument('--top_dir', type=str, default='model')
 
 FLAGS, un_parsed = parser.parse_known_args()
 
