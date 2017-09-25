@@ -4,7 +4,16 @@
 
 from common import *
 
-kv = dict()
+def load_ids_map():
+    filename = "v1/ids.map"
+    def parse(x):
+        x = x.strip()
+        k, v = x.split()
+        v = int(v)
+        return k, v
+    kv = map(parse, open(filename).readlines())
+    print len(kv)
+    return dict(kv)
 
 
 def ids(key):
@@ -18,6 +27,7 @@ def get_data(dirname):
     dirname += "/"
     files = [dirname + _ for _ in os.listdir(dirname) if _.startswith("part")]
     print files
+    kv = load_ids_map()
     for f in files:
         print time.ctime(), f
         for l in open(f):
@@ -26,9 +36,10 @@ def get_data(dirname):
                 continue
             items = l.split()
             label = int(items[0])
-            feas = map(str.split(":"), items[1:])
+            feas = map(lambda x: x.split(":"), items[1:])
             fid, value = zip(*feas)
-            fid = map(ids, fid)
+            fid = map(lambda x:kv[x], fid)
+            print fid
             value = np.asarray(value, dtype=np.float)
             yield label, fid, value
 
@@ -41,8 +52,6 @@ def load(dirname):
     print "======== load ==========="
     print time.ctime(), "begin"
     for i, (label, fid, fval) in enumerate(get_data(dirname)):
-        fid = [int(_.split("_")[1]) for _ in fid]
-
         ct = len(fid)
         row += [[i] * ct]
         col += [fid]
@@ -91,6 +100,5 @@ def split(dm):
 if __name__ == "__main__":
     dirname = sys.argv[1]
     labels, data, row, col = load(dirname)
-    pickle.dump(kv, "ids.map")
     dm = trans_to_coo(labels, data, row, col)
     split(dm)
