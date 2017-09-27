@@ -42,7 +42,13 @@ class Env(object):
 
 
 def dump_pred(ans, fout):
-    prob, label, iid = [_.reshape(-1) for _ in ans]
+    try:
+        prob, label, iid = [_.reshape(-1) for _ in ans]
+    except:
+        print "lan model"
+        ans[-1] = ans[-1].values
+        prob, label, iid = [_.reshape(-1) for _ in ans]
+    
     for v1, v2, v3 in zip(label, prob, iid):
         print >> fout, v1, v2, v3
 
@@ -105,7 +111,6 @@ def train(cf, model, env, data):
     saver = tf.train.Saver()
     model_path = env.get_model_path()
     log_path, loss_writer = env.get_log_path()
-    # writer = tf.summary.FileWriter(logdir=log_path)
 
     log = TrainLog(loss_writer)
 
