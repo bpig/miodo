@@ -2,6 +2,20 @@ from args import *
 
 import math
 
+def restore_model(sess, model_path, use_ema=True):
+    global_step = tf.train.get_or_create_global_step()
+    if use_ema:
+        ema = tf.train.ExponentialMovingAverage(0.995, global_step)
+        ema.apply(tf.trainable_variables())
+        variables_to_restore = ema.variables_to_restore()
+        saver = tf.train.Saver(
+            variables_to_restore,
+            write_version=tf.train.SaverDef.V2, max_to_keep=10)
+    else:
+        saver = tf.train.Saver(
+            write_version=tf.train.SaverDef.V2, max_to_keep=10)
+    saver.restore(sess, model_path)
+
 
 def leaky_relu(z, name=None):
     return tf.maximum(0.01 * z, z, name=name)

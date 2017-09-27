@@ -115,7 +115,8 @@ def train():
 
     with tf.Session(config=config) as sess:
         sess.run(init_op)
-
+        # path = "model/4/m4-final"
+        # restore_model(sess, path)
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord, sess=sess)
 

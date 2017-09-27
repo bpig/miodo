@@ -4,21 +4,6 @@ from network import *
 import os
 
 
-def restore_model(sess, model_path, use_ema=True):
-    global_step = tf.train.get_or_create_global_step()
-    if use_ema:
-        ema = tf.train.ExponentialMovingAverage(0.995, global_step)
-        ema.apply(tf.trainable_variables())
-        variables_to_restore = ema.variables_to_restore()
-        saver = tf.train.Saver(
-            variables_to_restore,
-            write_version=tf.train.SaverDef.V2, max_to_keep=10)
-    else:
-        saver = tf.train.Saver(
-            write_version=tf.train.SaverDef.V2, max_to_keep=10)
-    saver.restore(sess, model_path)
-
-
 def pred():
     fea = read_pred()
     layers = eval("[%s]" % FLAGS.layers)
@@ -32,7 +17,7 @@ def pred():
     top_dir = "model/%d/" % FLAGS.model
     model_path = top_dir + "m%s-%s" % (FLAGS.model, FLAGS.model_version)
     print model_path
-    ans = top_dir + "ans.raw.ema"
+    ans = top_dir + "ans.raw"
 
     with tf.Session(config=config) as sess:
         restore_model(sess, model_path)
