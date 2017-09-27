@@ -7,8 +7,8 @@ class DNN(NET):
     feature_map = {
         'label': tf.FixedLenFeature([1], tf.int64),
         'fid': tf.VarLenFeature(tf.int64),
-        # 'fval': tf.VarLenFeature(tf.int64),
         'iid': tf.FixedLenFeature(1, tf.int64),
+        # 'iid': tf.VarLenFeature(tf.string),
     }
 
     def inference(self, fea, drop=0.4):
@@ -23,8 +23,6 @@ class DNN(NET):
             weights = tf.get_variable("weights", [self.sparse_dim, self.layer_dim[0]],
                                       initializer=init)
             biases = tf.get_variable("biases", [self.layer_dim[0]], initializer=tf.zeros_initializer)
-            # tf.summary.histogram("weights", weights)
-            # tf.summary.histogram("biases", biases)
             embed = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + biases
             embed = self.leaky_relu(embed)
             # embed = tf.layers.dropout(embed, drop)

@@ -146,6 +146,9 @@ def train(cf, model, env, data):
 
 
 if __name__ == "__main__":
+    tf.set_random_seed(131314)
+    np.random.seed(131314)
+
     is_pred = True if len(sys.argv) > 2 else False
 
     conf_file = sys.argv[1]
