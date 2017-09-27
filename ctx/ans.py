@@ -20,8 +20,8 @@ if __name__ == "__main__":
         l = l.strip()
         items = l.split()
         assert len(items) == 3
-        if float(items[1]) <= 0.01:
-            items[1] = "0.01"
+        if float(items[1]) <= 0.007:
+            items[1] = "0.007"
         if is_lan:
             ans += [[items[2], items[1]]]
         else:
