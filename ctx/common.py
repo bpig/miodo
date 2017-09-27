@@ -25,9 +25,10 @@ class TrainLog():
         else:
             self.aa = self.aa * factor + (1 - factor) * loss
             self.bb = self.bb * factor + (1 - factor) * loss_valid
-        out = "%d %.3f %.3f %.3f" % (gs, loss, self.aa, self.bb)
-        print out
-        print >> self.writer, out
+        if gs % 100 == 0:
+            out = "%s %d %.3f %.3f %.3f" % (time.ctime(), gs, loss, self.aa, self.bb)
+            print out
+            print >> self.writer, out
 
 
 class NET(object):
@@ -107,8 +108,8 @@ class NET(object):
         # deep_vars = list(set(deep_vars) - set(l1_vars))
 
         print "other", deep_vars
-        # adam = tf.train.AdamOptimizer(learning_rate=lr)
-        adam = tf.train.AdagradOptimizer(learning_rate=0.01)
+        adam = tf.train.AdamOptimizer(learning_rate=lr)
+        # adam = tf.train.AdagradOptimizer(learning_rate=0.01)
         deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
         opts += [deep_opt]
         

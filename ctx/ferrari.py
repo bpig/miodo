@@ -79,7 +79,7 @@ def pred(cf, model, env, data):
 
         try:
             while not coord.should_stop():
-                ans = sess.run([prob, kv['label'], kv['instance_id']])
+                ans = sess.run([prob, kv['label'], kv['iid']])
                 dump_pred(ans, fout)
         except tf.errors.OutOfRangeError:
             print "up to epoch limits"
