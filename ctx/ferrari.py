@@ -76,17 +76,21 @@ def pred(cf, model, env, data):
 
     gpu_options = tf.GPUOptions(allow_growth=True)
     config = tf.ConfigProto(gpu_options=gpu_options)
+
     with tf.Session(config=config) as sess:
         tf.local_variables_initializer().run()
         restore_model(sess, model_path)
 
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord, sess=sess)
-
+        ct = 0
         try:
             while not coord.should_stop():
                 ans = sess.run([prob, kv['label'], kv['iid']])
                 dump_pred(ans, fout)
+                ct += 1
+                if ct % 100 == 0:
+                    print time.ctime(), ct
         except tf.errors.OutOfRangeError:
             print "up to epoch limits"
         finally:
