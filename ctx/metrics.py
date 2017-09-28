@@ -37,7 +37,7 @@ def read_file(filename):
         sp = line.strip().split()
         try:
             label = int(sp[0])
-            if label<=0:
+            if label <= 0:
                 label=0
             else:
                 label=1
@@ -64,8 +64,8 @@ def logloss(filename):
         y = float(sp[0])
         p = float(sp[1])
 
-        # if p < 0.017:
-        #     p = 0.017
+        # if p < 0.007:
+        #     p = 0.007
         # elif p > 0.983:
         #     p = 0.983
             
