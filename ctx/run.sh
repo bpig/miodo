@@ -1,4 +1,8 @@
 set -x
-conf=$1.conf
-CUDA_VISIBLE_DEVICES=3 python ferrari.py $conf && CUDA_VISIBLE_DEVICES=3 python ferrari.py $conf pred && ./metrics.py $conf
-# CUDA_VISIBLE_DEVICES=3 python ferrari.py $conf pred && ./metrics.py $conf
+
+gpu=$1
+conf=$2.conf
+
+CUDA_VISIBLE_DEVICES=$gpu python ferrari.py $conf && CUDA_VISIBLE_DEVICES=$gpu python ferrari.py $conf pred && ./metrics.py $conf
+# CUDA_VISIBLE_DEVICES=$2 python ferrari.py $conf pred && ./metrics.py $conf
+

@@ -5,9 +5,12 @@ from common import *
 def dump():
     # dirname = "/user/h_miui_ad/dev/wwxu/exp/tf/rfrecord/base/date=%2d"
     # dirname = "/user/h_miui_ad/dev/wwxu/exp/tf/rfrecord/opt5_1/date=%2d"
-    dirname = "/user/h_miui_ad/dev/wwxu/exp/tf/rfrecord/opt8_100/date=%2d"
-    date = range(24, 31) + range(32, 34)
-    # date = range(, 24)
+    # dirname = "/user/h_miui_ad/dev/wwxu/exp/tf/rfrecord/opt8_100/date=%2d"
+    dirname = "/user/h_miui_ad/dev/wwxu/exp/tf/rfrecord/opt9_0"
+    dirname += '/date=%2d'
+    # date = range(24, 31) + range(32, 34)
+    date = range(11, 24)
+
     print date
     prefix = "hadoop --cluster c3prc-hadoop fs -get "
     top_dir = dirname.split("/")[-2]
