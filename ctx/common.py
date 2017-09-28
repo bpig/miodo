@@ -12,10 +12,11 @@ from functools import partial
 
 
 class TrainLog():
-    def __init__(self, writer):
+    def __init__(self, writer, step=100):
         self.aa = 0.0
         self.bb = 0.0
         self.writer = writer
+        self.step = step
 
     def run(self, gs, loss, loss_valid):
         factor = 0.99
@@ -25,7 +26,7 @@ class TrainLog():
         else:
             self.aa = self.aa * factor + (1 - factor) * loss
             self.bb = self.bb * factor + (1 - factor) * loss_valid
-        if gs % 100 == 0:
+        if gs % self.step == 0:
             out = "%s %d %.3f %.3f %.3f" % (time.ctime(), gs, loss, self.aa, self.bb)
             print out
             print >> self.writer, out
@@ -33,6 +34,7 @@ class TrainLog():
 
 class NET(object):
     def __init__(self, cf):
+        self.step = 100
         self.ema_factor = 0.995
         section = "net"
         self.random_seed = 1314
@@ -62,7 +64,7 @@ class NET(object):
 
     @staticmethod
     def leaky_relu(z, name=None):
-        return tf.maximum(0.01 * z, z, name=name)
+        return tf.maximum(0.015 * z, z, name=name)
 
     def train_op(self, loss):
         global_step = tf.train.get_or_create_global_step()
@@ -99,7 +101,7 @@ class NET(object):
         # adam = tf.train.AdagradOptimizer(learning_rate=0.01)
         deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
         opts += [deep_opt]
-        
+        print "ema,", self.ema_factor
         ema = tf.train.ExponentialMovingAverage(self.ema_factor, global_step)
 
         clip_all_weights = tf.get_collection("max_norm")

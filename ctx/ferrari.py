@@ -3,6 +3,7 @@
 from common import *
 from nfm import *
 from dnn import *
+from dnn_lan import *
 from wde import *
 from afm import *
 from multi_dnn import *
@@ -45,7 +46,6 @@ def dump_pred(ans, fout):
     try:
         prob, label, iid = [_.reshape(-1) for _ in ans]
     except:
-        print "lan model"
         ans[-1] = ans[-1].values
         prob, label, iid = [_.reshape(-1) for _ in ans]
     
@@ -116,7 +116,7 @@ def train(cf, model, env, data):
     model_path = env.get_model_path()
     log_path, loss_writer = env.get_log_path()
 
-    log = TrainLog(loss_writer)
+    log = TrainLog(loss_writer, model.step)
 
     graph_options = tf.GraphOptions(enable_bfloat16_sendrecv=True)
     gpu_options = tf.GPUOptions(allow_growth=True)
