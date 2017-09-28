@@ -64,7 +64,7 @@ class NET(object):
 
     @staticmethod
     def leaky_relu(z, name=None):
-        return tf.maximum(0.015 * z, z, name=name)
+        return tf.maximum(0.01 * z, z, name=name)
 
     def train_op(self, loss):
         global_step = tf.train.get_or_create_global_step()

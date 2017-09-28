@@ -59,9 +59,10 @@ def restore_model(sess, model_path, use_ema=True):
         ema = tf.train.ExponentialMovingAverage(0.995, global_step)
         ema.apply(tf.trainable_variables())
         variables_to_restore = ema.variables_to_restore()
-        saver = tf.train.Saver(variables_to_restore)
+        saver = tf.train.Saver(variables_to_restore,
+                               write_version=tf.train.SaverDef.V2, max_to_keep=10)
     else:
-        saver = tf.train.Saver()
+        saver = tf.train.Saver(write_version=tf.train.SaverDef.V2, max_to_keep=10)
     saver.restore(sess, model_path)
 
 
@@ -112,17 +113,16 @@ def train(cf, model, env, data):
     loss2 = model.loss_op(kv_valid['label'], logits)
 
     global_step = tf.train.get_global_step()
-    saver = tf.train.Saver()
+    saver = tf.train.Saver(write_version=tf.train.SaverDef.V2, max_to_keep=10)
     model_path = env.get_model_path()
     log_path, loss_writer = env.get_log_path()
 
     log = TrainLog(loss_writer, model.step)
 
-    graph_options = tf.GraphOptions(enable_bfloat16_sendrecv=True)
     gpu_options = tf.GPUOptions(allow_growth=True)
 
-    config = tf.ConfigProto(gpu_options=gpu_options,
-                            graph_options=graph_options)
+    config = tf.ConfigProto(gpu_options=gpu_options)
+
     with tf.Session(config=config) as sess:
         tf.global_variables_initializer().run()
         tf.local_variables_initializer().run()
