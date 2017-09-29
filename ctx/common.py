@@ -41,13 +41,13 @@ def max_norm_regularizer(weights, threshold=0.1, axes=1, name="max_norm", collec
 
 
 def remove_opt_var(vars):
-    c = set()
+    ans = []
+    print vars
     for _ in vars:
-        if "Adag" in _ or "Adam" in _:
-            c.add(_)
-    for _ in c:
-        del vars[_]
-    return vars
+        if "Adag" in _.name or "Adam" in _.name:
+            continue
+        ans += [_]
+    return ans
 
 
 class NET(object):
