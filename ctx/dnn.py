@@ -26,7 +26,6 @@ class DNN(NET):
             biases = tf.get_variable("biases", [self.layer_dim[0]], initializer=tf.zeros_initializer)
             embed = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + biases
             embed = self.leaky_relu(embed)
-            # embed = tf.layers.dropout(embed, drop)
 
         with tf.variable_scope("deep"):
             pre_layer = embed
@@ -43,7 +42,6 @@ class DNN(NET):
         with tf.variable_scope("concat"):
             init = tf.truncated_normal_initializer(
                 stddev=1.0 / math.sqrt(float(self.layer_dim[-1])))
-            # init = tf.uniform_unit_scaling_initializer(1.)
             logits = tf.layers.dense(pre_layer, 1, name="logists",
                                      kernel_initializer=init)
             # logits = tf.clip_by_value(logits, -5, 5)

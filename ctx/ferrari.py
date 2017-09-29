@@ -50,7 +50,7 @@ def dump_pred(ans, fout):
     except:
         ans[-1] = ans[-1].values
         prob, label, iid = [_.reshape(-1) for _ in ans]
-    
+
     for v1, v2, v3 in zip(label, prob, iid):
         print >> fout, v1, v2, v3
 
@@ -121,10 +121,10 @@ def train(cf, model, env, data):
     opt = model.train_op(loss)
 
     tf.get_variable_scope().reuse_variables()
-    if model.model == "WDE":    
-        logits, _, _ = model.inference(kv_valid, 0.0)
+    if model.model == "WDE":
+        logits, _, _ = model.inference(kv_valid, 0.5)
     else:
-        logits = model.inference(kv, 0.0)
+        logits = model.inference(kv, 0.5)
     loss2 = model.loss_op(kv_valid['label'], logits)
 
     global_step = tf.train.get_global_step()
@@ -133,7 +133,7 @@ def train(cf, model, env, data):
     log_path, loss_writer = env.get_log_path()
 
     log = TrainLog(loss_writer, model.step)
-    log2 = TrainLog(loss_writer, model.step)    
+    log2 = TrainLog(loss_writer, model.step)
 
     gpu_options = tf.GPUOptions(allow_growth=True)
 
@@ -144,7 +144,7 @@ def train(cf, model, env, data):
         tf.local_variables_initializer().run()
 
         # restore_model(sess, model_path + "-final")
-        
+
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord, sess=sess)
 

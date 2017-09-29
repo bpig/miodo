@@ -13,11 +13,8 @@ class DNNLAN(NET):
     def inference(self, fea, drop=0.4):
         self.ema_factor = 0.992
         self.step = 10
-        
-        fea = fea['fid']
 
-        batch_norm_layer = partial(tf.layers.batch_normalization,
-                                   training=self.training, momentum=0.9)
+        fea = fea['fid']
 
         with tf.variable_scope("embed"):
             init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(float(self.sparse_dim)))

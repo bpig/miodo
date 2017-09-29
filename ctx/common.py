@@ -32,6 +32,14 @@ class TrainLog():
             print >> self.writer, out
 
 
+def max_norm_regularizer(weights, threshold=0.1, axes=1, name="max_norm", collection="max_norm"):
+    if threshold == 0.0:
+        return
+    clipped = tf.clip_by_norm(weights, clip_norm=threshold, axes=axes)
+    clip_weights = tf.assign(weights, clipped, name=name)
+    tf.add_to_collection(collection, clip_weights)
+
+
 class NET(object):
     def __init__(self, cf):
         self.step = 100
@@ -41,7 +49,7 @@ class NET(object):
         self.sparse_dim = cf.getint(section, "sparse_dim")
         self.layer_dim = eval(cf.get(section, "layer_dim"))
         self.batch_norm = False
-        # self.hidden_factor = cf.getint(section, "fm_factor")
+
         tf.set_random_seed(self.random_seed)
 
         self.lr = cf.getfloat(section, "lr")
@@ -52,7 +60,9 @@ class NET(object):
         self.training = tf.placeholder_with_default(False, shape=(), name='training')
         self.cf = cf
 
-    def get_weight_size(self, vars):
+    @staticmethod
+    def get_weight_size(self):
+        vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
         total_parameters = 0
         for var in vars:
             print var.name, var.shape
@@ -78,15 +88,9 @@ class NET(object):
         wide_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='wide')
         deep_vars = list(set(vars) - set(wide_vars))
 
-        def max_norm_regularizer(weights, axes=1, name="max_norm", collection="max_norm"):
-            threshold = 1.0
-            clipped = tf.clip_by_norm(weights, clip_norm=threshold, axes=axes)
-            clip_weights = tf.assign(weights, clipped, name=name)
-            tf.add_to_collection(collection, clip_weights)
-
         for var in deep_vars:
             if "kernel" in var.name:
-                max_norm_regularizer(var, name=var.name[:-2] + "_norm")
+                max_norm_regularizer(var, 0.1, name=var.name[:-2] + "_norm")
 
         opts = []
         if wide_vars:
@@ -95,13 +99,11 @@ class NET(object):
             wide_opt = ftrl.minimize(loss, var_list=wide_vars)
             opts += [wide_opt]
 
-
         if deep_vars:
-            print "deep_vars", deep_vars            
+            print "deep_vars", deep_vars
             adam = tf.train.AdamOptimizer(learning_rate=lr)
             # if self.model == "WDE":
             #     adam = tf.train.AdagradOptimizer(learning_rate=0.01)
-            # adam = tf.train.AdagradOptimizer(learning_rate=lr)
             deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
             opts += [deep_opt]
 
