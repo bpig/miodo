@@ -16,6 +16,7 @@ class DNNFC(NET):
 
         fea = fea['fid']
         fea = tf.sparse_tensor_to_dense(fea)
+        fea = tf.to_float(fea)
 
         with tf.variable_scope("deep"):
             pre_layer = fea
