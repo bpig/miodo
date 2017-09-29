@@ -63,7 +63,6 @@ def logloss(filename):
         sp = line.strip().split()
         y = float(sp[0])
         p = float(sp[1])
-
         # if p < 0.007:
         #     p = 0.007
         # elif p > 0.983:

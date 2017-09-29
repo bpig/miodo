@@ -104,22 +104,26 @@ def pred(cf, model, env, data):
 
 
 def train(cf, model, env, data):
+    try:
+        drop = cf.getfloat("net", "drop")
+    except:
+        drop = 0.5
     kv = data.read(model.feature_map)
     kv_valid = data.read_valid(model.feature_map)
 
     if model.model == "WDE":
-        logits, w, d = model.inference(kv, 0.5)
+        logits, w, d = model.inference(kv, drop)
     else:
-        logits = model.inference(kv, 0.5)
+        logits = model.inference(kv, drop)
     loss = model.loss_op(kv['label'], logits)
 
     opt = model.train_op(loss)
 
     tf.get_variable_scope().reuse_variables()
     if model.model == "WDE":
-        logits, _, _ = model.inference(kv_valid, 0.5)
+        logits, _, _ = model.inference(kv_valid, 0.0)
     else:
-        logits = model.inference(kv, 0.5)
+        logits = model.inference(kv_valid, 0.0)
     loss2 = model.loss_op(kv_valid['label'], logits)
 
     global_step = tf.train.get_global_step()

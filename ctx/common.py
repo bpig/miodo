@@ -52,6 +52,10 @@ def remove_opt_var(vars):
 
 class NET(object):
     def __init__(self, cf):
+        try:
+            self.threshold = cf.getfloat("net", "threshold")
+        except:
+            self.threshold = 0.1
         self.step = 100
         self.ema_factor = 0.995
         section = "net"
@@ -96,7 +100,7 @@ class NET(object):
 
         for var in deep_vars:
             if "kernel" in var.name:
-                max_norm_regularizer(var, 0.1, name=var.name[:-2] + "_norm")
+                max_norm_regularizer(var, self.threshold, name=var.name[:-2] + "_norm")
 
         opts = []
         if wide_vars:
@@ -107,7 +111,7 @@ class NET(object):
 
         if deep_vars:
             print "deep_vars", deep_vars
-            adam = tf.train.AdamOptimizer(learning_rate=lr)
+            adam = tf.train.AdamOptimizer(learning_rate=lr, beta1=0.99, beta2=0.9999)
             # if self.model == "WDE":
             #     adam = tf.train.AdagradOptimizer(learning_rate=0.01)
             deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
