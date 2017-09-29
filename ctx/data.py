@@ -9,11 +9,7 @@ class Data(object):
             section = "pred"
         else:
             section = "train"
-        try:
-            self.data_file = cf.get(section, "data_file")
-            self.data_file = eval(self.data_file)
-        except:
-            self.data_file = None
+
         self.date_begin = cf.getint(section, "date_begin")
         self.date_end = cf.getint(section, "date_end")
         self.num_epochs = cf.getint(section, "num_epochs")
@@ -24,15 +20,15 @@ class Data(object):
             self.valid_data = []
             for d in [29, 30]:
                 prefix = "%s/date=%2d/" % (self.top_dir, d)
+                print prefix
                 self.valid_data += [prefix + _ for _ in os.listdir(prefix) if _.startswith("part")]
             print "valid", len(self.valid_data)
 
     def get_data_list(self):
-        if self.data_file:
-            return
         ans = []
         for d in range(self.date_begin, self.date_end + 1):
             prefix = "%s/date=%2d/" % (self.top_dir, d)
+            print prefix
             ans += [prefix + _ for _ in os.listdir(prefix) if _.startswith("part")]
         random.shuffle(ans)
         self.data_file = ans

@@ -6,14 +6,19 @@ from common import *
 class WDE(NET):
     feature_map = {
         'label': tf.FixedLenFeature([1], tf.int64),
-        'wide_feature_id': tf.VarLenFeature(tf.int64),
-        'deep_feature_id': tf.VarLenFeature(tf.int64),
-        'instance_id': tf.FixedLenFeature(1, tf.int64),
+        # 'wide_feature_id': tf.VarLenFeature(tf.int64),
+        # 'deep_feature_id': tf.VarLenFeature(tf.int64),
+        'fid': tf.VarLenFeature(tf.int64),
+        # 'instance_id': tf.FixedLenFeature(1, tf.int64),
+        'iid': tf.FixedLenFeature(1, tf.int64),
     }
 
     def inference(self, fea, drop=0.4):
-        wide_fea = fea['wide_feature_id']
-        deep_fea = fea['deep_feature_id']
+        # wide_fea = fea['wide_feature_id']
+        # deep_fea = fea['deep_feature_id']
+        wide_fea = fea['fid']
+        deep_fea = fea['fid']
+        
 
         init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(float(self.sparse_dim)))
         with tf.device("/cpu:0"), tf.variable_scope("wide"):
@@ -22,7 +27,6 @@ class WDE(NET):
             biases = tf.get_variable(
                 "biases", [1], initializer=tf.zeros_initializer)
             wide = tf.nn.embedding_lookup_sparse(weights, wide_fea, None, combiner="sum") + biases
-            wide = tf.nn.relu(wide)
 
         wide_dim = self.cf.getint("net", "dense_dim")
         with tf.variable_scope("embed"):
@@ -47,10 +51,10 @@ class WDE(NET):
                 stddev=1.0 / math.sqrt(float(self.layer_dim[-1])))
             logits = tf.layers.dense(pre_layer, 1, name="logists",
                                      kernel_initializer=init)
-            logits += wide
-            logits = tf.clip_by_value(logits, -4, 4)
+            merge = wide + logits * 10
+            # logits = tf.clip_by_value(logits, -5, 5)
 
-        return logits
+        return merge, tf.reduce_mean(wide), tf.reduce_mean(logits)
 
 
 if __name__ == "__main__":

@@ -79,7 +79,7 @@ class NET(object):
         deep_vars = list(set(vars) - set(wide_vars))
 
         def max_norm_regularizer(weights, axes=1, name="max_norm", collection="max_norm"):
-            threshold = 0.1
+            threshold = 1.0
             clipped = tf.clip_by_norm(weights, clip_norm=threshold, axes=axes)
             clip_weights = tf.assign(weights, clipped, name=name)
             tf.add_to_collection(collection, clip_weights)
@@ -89,20 +89,22 @@ class NET(object):
                 max_norm_regularizer(var, name=var.name[:-2] + "_norm")
 
         opts = []
-        if self.model == "WDE":
-            ftrl = tf.train.FtrlOptimizer(0.1, l1_regularization_strength=1.0)
+        if wide_vars:
+            print "wide_vars", wide_vars
+            ftrl = tf.train.FtrlOptimizer(0.1, l1_regularization_strength=0.0)
             wide_opt = ftrl.minimize(loss, var_list=wide_vars)
-        else:
-            wide_opt = tf.no_op("wide_placehold")
-        opts += [wide_opt]
+            opts += [wide_opt]
 
-        print "other", deep_vars
-        adam = tf.train.AdamOptimizer(learning_rate=lr)
-        if self.model == "WDE":
-            adam = tf.train.AdagradOptimizer(learning_rate=0.01)
-        # adam = tf.train.AdagradOptimizer(learning_rate=lr)
-        deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
-        opts += [deep_opt]
+
+        if deep_vars:
+            print "deep_vars", deep_vars            
+            adam = tf.train.AdamOptimizer(learning_rate=lr)
+            # if self.model == "WDE":
+            #     adam = tf.train.AdagradOptimizer(learning_rate=0.01)
+            # adam = tf.train.AdagradOptimizer(learning_rate=lr)
+            deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
+            opts += [deep_opt]
+
         print "ema,", self.ema_factor
         ema = tf.train.ExponentialMovingAverage(self.ema_factor, global_step)
 

@@ -12,6 +12,7 @@ class DNN(NET):
     }
 
     def inference(self, fea, drop=0.4):
+        self.step = 10
         fea = fea['fid']
 
         batch_norm_layer = partial(tf.layers.batch_normalization,

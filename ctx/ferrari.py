@@ -6,6 +6,7 @@ from dnn import *
 from dnn_lan import *
 from dnn_fc import *
 from wde import *
+from ftrl import *
 from afm import *
 from multi_dnn import *
 from data import *
@@ -111,13 +112,19 @@ def train(cf, model, env, data):
     kv = data.read(model.feature_map)
     kv_valid = data.read_valid(model.feature_map)
 
-    logits = model.inference(kv, 0.5)
+    if model.model == "WDE":
+        logits, w, d = model.inference(kv, 0.5)
+    else:
+        logits = model.inference(kv, 0.5)
     loss = model.loss_op(kv['label'], logits)
 
     opt = model.train_op(loss)
 
     tf.get_variable_scope().reuse_variables()
-    logits = model.inference(kv_valid)
+    if model.model == "WDE":    
+        logits, _, _ = model.inference(kv_valid, 0.0)
+    else:
+        logits = model.inference(kv, 0.0)
     loss2 = model.loss_op(kv_valid['label'], logits)
 
     global_step = tf.train.get_global_step()
@@ -126,6 +133,7 @@ def train(cf, model, env, data):
     log_path, loss_writer = env.get_log_path()
 
     log = TrainLog(loss_writer, model.step)
+    log2 = TrainLog(loss_writer, model.step)    
 
     gpu_options = tf.GPUOptions(allow_growth=True)
 
@@ -148,6 +156,7 @@ def train(cf, model, env, data):
                 loss_value, _, gs, loss_valid = sess.run(
                     [loss, opt, global_step, loss2], feed_dict={model.training: True})
                 log.run(gs, loss_value, loss_valid)
+                # log2.run(gs, v_w, v_d)                
                 sess.run(clip_all_weights)
                 if gs % cf.getint("train", "dump_step") == 0:
                     saver.save(sess, model_path, global_step=global_step)
