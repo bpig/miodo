@@ -4,6 +4,7 @@ from common import *
 from nfm import *
 from dnn import *
 from dnn_lan import *
+from dnn_fc import *
 from wde import *
 from afm import *
 from multi_dnn import *
