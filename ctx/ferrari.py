@@ -59,6 +59,13 @@ def restore_model(sess, model_path, use_ema=True):
         ema = tf.train.ExponentialMovingAverage(0.995, global_step)
         ema.apply(tf.trainable_variables())
         variables_to_restore = ema.variables_to_restore()
+        c = set()
+        for _ in variables_to_restore:
+            if "Adag" in _ or "Adam" in _:
+                c.add(_)
+        for _ in c:
+            del variables_to_restore[_]
+        print variables_to_restore
         saver = tf.train.Saver(variables_to_restore,
                                write_version=tf.train.SaverDef.V2, max_to_keep=10)
     else:
@@ -127,6 +134,8 @@ def train(cf, model, env, data):
         tf.global_variables_initializer().run()
         tf.local_variables_initializer().run()
 
+        # restore_model(sess, model_path + "-final")
+        
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord, sess=sess)
 

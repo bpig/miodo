@@ -92,7 +92,7 @@ def train():
     deep_train_op = ada_optimizer.minimize(
         train_loss, global_step=global_step, var_list=deep_vars)
 
-    ftrl_optimizer = tf.train.FtrlOptimizer(0.1, l1_regularization_strength=1.0)
+    ftrl_optimizer = tf.train.FtrlOptimizer(0.05, l1_regularization_strength=100)
     wide_train_op = ftrl_optimizer.minimize(
         train_loss, var_list=wide_vars)
 
