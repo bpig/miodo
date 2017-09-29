@@ -13,8 +13,9 @@ class DNNFC(NET):
     def inference(self, fea, drop=0.4):
         self.ema_factor = 0.992
         self.step = 10
-        
+
         fea = fea['fid']
+        fea = tf.sparse_tensor_to_dense(fea)
 
         with tf.variable_scope("deep"):
             pre_layer = fea
