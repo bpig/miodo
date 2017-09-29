@@ -40,17 +40,23 @@ def max_norm_regularizer(weights, threshold=0.1, axes=1, name="max_norm", collec
     tf.add_to_collection(collection, clip_weights)
 
 
+def remove_opt_var(vars):
+    c = set()
+    for _ in vars:
+        if "Adag" in _ or "Adam" in _:
+            c.add(_)
+    for _ in c:
+        del vars[_]
+    return vars
+
+
 class NET(object):
     def __init__(self, cf):
         self.step = 100
         self.ema_factor = 0.995
         section = "net"
-        self.random_seed = 1314
         self.sparse_dim = cf.getint(section, "sparse_dim")
         self.layer_dim = eval(cf.get(section, "layer_dim"))
-        self.batch_norm = False
-
-        tf.set_random_seed(self.random_seed)
 
         self.lr = cf.getfloat(section, "lr")
         self.lr_decay_step = cf.getint(section, "lr_decay_step")
@@ -114,7 +120,8 @@ class NET(object):
 
         with tf.control_dependencies(opts):
             with tf.control_dependencies(clip_all_weights):
-                train_op = ema.apply(tf.trainable_variables())
+                train_op = ema.apply(
+                    remove_opt_var(tf.trainable_variables()))
         return train_op
 
     def loss_op(self, labels, logits):

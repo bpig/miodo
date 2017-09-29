@@ -8,7 +8,6 @@ class DNN(NET):
         'label': tf.FixedLenFeature([1], tf.int64),
         'fid': tf.VarLenFeature(tf.int64),
         'iid': tf.FixedLenFeature(1, tf.int64),
-        # 'iid': tf.VarLenFeature(tf.string),
     }
 
     def inference(self, fea, drop=0.4):
@@ -20,7 +19,6 @@ class DNN(NET):
 
         with tf.variable_scope("embed"):
             init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(float(self.sparse_dim)))
-            # init = tf.zeros_initializer
             weights = tf.get_variable("weights", [self.sparse_dim, self.layer_dim[0]],
                                       initializer=init)
             biases = tf.get_variable("biases", [self.layer_dim[0]], initializer=tf.zeros_initializer)
@@ -32,7 +30,6 @@ class DNN(NET):
             for i in range(1, len(self.layer_dim)):
                 init = tf.truncated_normal_initializer(
                     stddev=1.0 / math.sqrt(float(self.layer_dim[i - 1])))
-                # init = tf.uniform_unit_scaling_initializer(1.43)
                 layer = tf.layers.dense(pre_layer, self.layer_dim[i], name="layer%d" % i,
                                         activation=self.leaky_relu,
                                         kernel_initializer=init)
