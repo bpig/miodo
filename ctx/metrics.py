@@ -76,9 +76,12 @@ def logloss(filename):
     
 if __name__=="__main__":
     """usage : ./metrics.py filename"""
-    conf = sys.argv[1][:-5]
-    filename = "log/%s_log/pred_result" % conf
-    # filename = sys.argv[1]
+
+    filename = sys.argv[1]
+    if not os.path.exists(filename):
+        conf = sys.argv[1]
+        filename = "log/%s_log/pred_result" % conf
+    # 
     mtime  = time.ctime(os.stat(filename).st_mtime)
     filesize = "%.3fMB" % (getsize(filename) / 1024.0 / 1024.0)
     print mtime, filename, filesize

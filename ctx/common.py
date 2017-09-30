@@ -114,8 +114,11 @@ class NET(object):
             adam = tf.train.AdamOptimizer(learning_rate=lr)
             # if self.model == "WDE":
             #     adam = tf.train.AdagradOptimizer(learning_rate=0.01)
-            deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
-            opts += [deep_opt]
+            try:
+                deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
+                opts += [deep_opt]
+            except:
+                pass
 
         print "ema,", self.ema_factor
         ema = tf.train.ExponentialMovingAverage(self.ema_factor, global_step)

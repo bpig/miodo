@@ -17,12 +17,11 @@ class DNNFC(NET):
             if not l:
                 continue
             items = l.split()
-            assert items
-            idx = int(items[1])
+            assert len(items) == 3
             w = float(items[2])
-            weights[idx] = w
+            weights += [w]
         assert len(weights) == self.sparse_dim
-        weights = np.asarray(weights).reshape((-1, 1))
+        weights = np.asarray(weights, dtype=np.float32).reshape((-1, 1))
         return weights
 
     def inference(self, fea, drop=0.4):
@@ -31,7 +30,7 @@ class DNNFC(NET):
 
         with tf.variable_scope("ftrl"):
             bias = -0.614403
-            ftrl_weight = self.load_ftrl_weight("")
+            ftrl_weight = self.load_ftrl_weight("/home/work/wwxu/opt1_100/weight")
             weights = tf.Variable(ftrl_weight, name="ftrl_weight", trainable=False)
             ftrl = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + bias
 
@@ -42,7 +41,9 @@ class DNNFC(NET):
             init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(float(self.sparse_dim)))
             weights = tf.get_variable("weights", [self.sparse_dim, self.layer_dim[0]],
                                       initializer=init)
-            biases = tf.get_variable("biases", [self.layer_dim[0]], initializer=tf.zeros_initializer)
+            biases = tf.get_variable("biases", [self.layer_dim[0]],
+                                     initializer=tf.zeros_initializer()
+            )
             embed = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + biases
             embed = self.leaky_relu(embed)
 
@@ -63,7 +64,6 @@ class DNNFC(NET):
             logits = tf.layers.dense(pre_layer, 1, name="logists",
                                      kernel_initializer=init)
             logits += ftrl
-            # logits = tf.clip_by_value(logits, -5, 5)
 
         return logits
 
