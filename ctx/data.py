@@ -62,4 +62,5 @@ class Data(object):
 
 
 if __name__ == "__main__":
+    tf.nn.elu()
     pass
