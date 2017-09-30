@@ -111,7 +111,7 @@ class NET(object):
 
         if deep_vars:
             print "deep_vars", deep_vars
-            adam = tf.train.AdamOptimizer(learning_rate=lr, beta1=0.99, beta2=0.9999)
+            adam = tf.train.AdamOptimizer(learning_rate=lr)
             # if self.model == "WDE":
             #     adam = tf.train.AdagradOptimizer(learning_rate=0.01)
             deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
