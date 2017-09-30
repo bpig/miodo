@@ -11,7 +11,7 @@ class DNNFC(NET):
     }
 
     def load_ftrl_weight(self, filename):
-        weights = [0] * self.sparse_dim
+        weights = [0]
         for l in open(filename):
             l = l.strip()
             if not l:
@@ -21,6 +21,8 @@ class DNNFC(NET):
             idx = int(items[1])
             w = float(items[2])
             weights[idx] = w
+        assert len(weights) == self.sparse_dim
+        weights = np.asarray(weights).reshape((-1, 1))
         return weights
 
     def inference(self, fea, drop=0.4):
@@ -28,9 +30,10 @@ class DNNFC(NET):
         fea = fea['fid']
 
         with tf.variable_scope("ftrl"):
+            bias = -0.614403
             ftrl_weight = self.load_ftrl_weight("")
             weights = tf.Variable(ftrl_weight, name="ftrl_weight", trainable=False)
-            ftrl = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum")
+            ftrl = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + bias
 
         batch_norm_layer = partial(tf.layers.batch_normalization,
                                    training=self.training, momentum=0.9)
