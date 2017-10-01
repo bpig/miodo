@@ -29,8 +29,10 @@ class DNNFC(NET):
         fea = fea['fid']
 
         with tf.variable_scope("ftrl"):
-            bias = -0.614403
-            ftrl_weight = self.load_ftrl_weight("/home/work/wwxu/opt1_100/weight")
+            bias = -0.656171
+            ftrl_weight = self.load_ftrl_weight("opt2_100/weight")
+            # bias = -0.614403
+            # ftrl_weight = self.load_ftrl_weight("/home/work/wwxu/opt1_100/weight")
             weights = tf.Variable(ftrl_weight, name="ftrl_weight", trainable=False)
             ftrl = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + bias
 
