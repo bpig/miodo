@@ -28,6 +28,7 @@ class DNNFC(NET):
 
     def inference(self, fea, drop=0.4):
         self.step = 10
+        self.ema_factor = 0.999        
         w_fea = fea['wide']
         fea = fea['deep']
 
@@ -48,9 +49,10 @@ class DNNFC(NET):
         batch_norm_layer = partial(tf.layers.batch_normalization,
                                    training=self.training, momentum=0.9)
 
+        self.dense_dim = self.cf.getint("net", "dense_dim")
         with tf.variable_scope("embed"):
-            init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(float(self.sparse_dim)))
-            weights = tf.get_variable("weights", [self.sparse_dim, self.layer_dim[0]],
+            init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(float(self.dense_dim)))
+            weights = tf.get_variable("weights", [self.dense_dim, self.layer_dim[0]],
                                       initializer=init)
             biases = tf.get_variable("biases", [self.layer_dim[0]],
                                      initializer=tf.zeros_initializer()
