@@ -6,7 +6,9 @@ from common import *
 class DNNFC(NET):
     feature_map = {
         'label': tf.FixedLenFeature([1], tf.int64),
-        'fid': tf.VarLenFeature(tf.int64),
+        # 'fid': tf.VarLenFeature(tf.int64),
+        'wide': tf.VarLenFeature(tf.int64),
+        'deep': tf.VarLenFeature(tf.int64),
         'iid': tf.FixedLenFeature(1, tf.int64),
     }
 
@@ -20,19 +22,22 @@ class DNNFC(NET):
             assert len(items) == 3
             w = float(items[2])
             weights += [w]
-        assert len(weights) == self.sparse_dim
+        assert len(weights) == self.sparse_dim, len(weights)
         weights = np.asarray(weights, dtype=np.float32).reshape((-1, 1))
         return weights
 
     def inference(self, fea, drop=0.4):
         self.step = 10
-        fea = fea['fid']
+        w_fea = fea['wide']
+        fea = fea['deep']
 
         with tf.variable_scope("ftrl"):
-            bias = -0.614403
-            ftrl_weight = self.load_ftrl_weight("/home/work/wwxu/opt1_100/weight")
+            bias = self.cf.getfloat("net", "w_bias")
+            weight_file = self.cf.get("net", "w_weight")
+            # bias = -0.614403
+            ftrl_weight = self.load_ftrl_weight(weight_file)
             weights = tf.Variable(ftrl_weight, name="ftrl_weight", trainable=False)
-            ftrl = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + bias
+            ftrl = tf.nn.embedding_lookup_sparse(weights, w_fea, None, combiner="sum") + bias
 
         batch_norm_layer = partial(tf.layers.batch_normalization,
                                    training=self.training, momentum=0.9)
