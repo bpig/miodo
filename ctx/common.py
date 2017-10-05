@@ -115,7 +115,12 @@ class NET(object):
             # if self.model == "WDE":
             #     adam = tf.train.AdagradOptimizer(learning_rate=0.01)
             try:
-                deep_opt = adam.minimize(loss, global_step=global_step, var_list=deep_vars)
+                grads = adam.compute_gradients(loss, var_list=deep_vars)
+                for i, (g, v) in enumerate(grads):
+                    if g is not None:
+                        grads[i] = (tf.clip_by_norm(g, 5), v)  # clip gradients
+                deep_opt = adam.apply_gradients(grads, global_step=global_step)
+                # deep_opt = adam.minimize(loss, global_step=global_step,
                 opts += [deep_opt]
             except:
                 pass

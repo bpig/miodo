@@ -32,10 +32,16 @@ class DNNFC(NET):
         fea = fea['deep']
 
         with tf.variable_scope("ftrl"):
+
             bias = self.cf.getfloat("net", "w_bias")
             weight_file = self.cf.get("net", "w_weight")
-            # bias = -0.614403
             ftrl_weight = self.load_ftrl_weight(weight_file)
+
+            # bias = -0.656171
+            # ftrl_weight = self.load_ftrl_weight("opt2_100/weight")
+            # bias = -0.614403
+            # ftrl_weight = self.load_ftrl_weight("/home/work/wwxu/opt1_100/weight")
+
             weights = tf.Variable(ftrl_weight, name="ftrl_weight", trainable=False)
             ftrl = tf.nn.embedding_lookup_sparse(weights, w_fea, None, combiner="sum") + bias
 
@@ -48,7 +54,7 @@ class DNNFC(NET):
                                       initializer=init)
             biases = tf.get_variable("biases", [self.layer_dim[0]],
                                      initializer=tf.zeros_initializer()
-            )
+                                     )
             embed = tf.nn.embedding_lookup_sparse(weights, fea, None, combiner="sum") + biases
             embed = self.leaky_relu(embed)
 
