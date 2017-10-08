@@ -51,10 +51,10 @@ class DNNFC(NET):
                 init = tf.truncated_normal_initializer(
                     stddev=1.0 / math.sqrt(float(self.layer_dim[i - 1])))
                 layer = tf.layers.dense(pre_layer, self.layer_dim[i], name="layer%d" % i,
-                                        # activation=self.leaky_relu,
+                                        activation=self.leaky_relu,
                                         kernel_initializer=init)
-                layer = bn_layer(layer)
-                layer = self.leaky_relu(layer)
+                # layer = bn_layer(layer)
+                # layer = self.leaky_relu(layer)
                 layer = tf.layers.dropout(layer, drop)
 
                 pre_layer = layer
@@ -64,7 +64,7 @@ class DNNFC(NET):
                 stddev=1.0 / math.sqrt(float(self.layer_dim[-1])))
             logits = tf.layers.dense(pre_layer, 1, name="logists",
                                      kernel_initializer=init)
-            logits = bn_layer(logits)
+            # logits = bn_layer(logits)
             logits += ftrl
 
         return logits
