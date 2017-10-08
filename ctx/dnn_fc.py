@@ -12,19 +12,6 @@ class DNNFC(NET):
         'iid': tf.FixedLenFeature(1, tf.int64),
     }
 
-    def load_ftrl_weight(self, filename):
-        weights = [0]
-        for l in open(filename):
-            l = l.strip()
-            if not l:
-                continue
-            items = l.split()
-            assert len(items) == 3
-            w = float(items[2])
-            weights += [w]
-        assert len(weights) == self.sparse_dim, len(weights)
-        weights = np.asarray(weights, dtype=np.float32).reshape((-1, 1))
-        return weights
 
     def inference(self, fea, drop=0.4):
         self.step = 10

@@ -61,6 +61,10 @@ class NET(object):
         section = "net"
         self.sparse_dim = cf.getint(section, "sparse_dim")
         self.layer_dim = eval(cf.get(section, "layer_dim"))
+        try:
+            self.hidden_factor = cf.getint(section, "hidden_factor")
+        except:
+            pass
 
         self.lr = cf.getfloat(section, "lr")
         self.lr_decay_step = cf.getint(section, "lr_decay_step")
@@ -70,6 +74,20 @@ class NET(object):
         self.training = tf.placeholder_with_default(False, shape=(), name='training')
         self.cf = cf
 
+    def load_ftrl_weight(self, filename):
+        weights = [0]
+        for l in open(filename):
+            l = l.strip()
+            if not l:
+                continue
+            items = l.split()
+            assert len(items) == 3
+            w = float(items[2])
+            weights += [w]
+        assert len(weights) == self.sparse_dim, len(weights)
+        weights = np.asarray(weights, dtype=np.float32).reshape((-1, 1))
+        return weights
+        
     @staticmethod
     def get_weight_size(self):
         vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)

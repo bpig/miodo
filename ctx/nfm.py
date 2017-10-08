@@ -6,17 +6,32 @@ from common import *
 class NFM(NET):
     feature_map = {
         'label': tf.FixedLenFeature([1], tf.int64),
-        'fid': tf.VarLenFeature(tf.int64),
-        'fval': tf.VarLenFeature(tf.int64),
+        'wide': tf.VarLenFeature(tf.int64),
+        'deep': tf.VarLenFeature(tf.int64),
+        
+        # 'fid': tf.VarLenFeature(tf.int64),
+        # 'fval': tf.VarLenFeature(tf.int64),
         'iid': tf.FixedLenFeature(1, tf.int64),
     }
 
     def inference(self, fea, drop=0.5):
-        fea = fea['fid']
+        # fea = fea['fid']
 
         self._initialize_weights()
         weights = self.weights
 
+        self.step = 10
+        self.ema_factor = 0.999        
+        w_fea = fea['wide']
+        fea = fea['deep']
+
+        with tf.variable_scope("ftrl"):
+            bias = self.cf.getfloat("net", "w_bias")
+            weight_file = self.cf.get("net", "w_weight")
+            ftrl_weight = self.load_ftrl_weight(weight_file)
+            w = tf.Variable(ftrl_weight, name="ftrl_weight", trainable=False)
+            ftrl = tf.nn.embedding_lookup_sparse(w, w_fea, None, combiner="sum") + bias
+        
         segment_ids = fea.indices[:, 0]
         if segment_ids.dtype != tf.int32:
             segment_ids = tf.cast(segment_ids, tf.int32)
@@ -32,16 +47,16 @@ class NFM(NET):
             tf.square(embed), idx, segment_ids)
 
         fm = 0.5 * tf.subtract(square_last_embed, mean_last_embed)
-        fm = tf.nn.dropout(fm, drop)
+        fm = tf.layers.dropout(fm, drop)
 
         for i in range(0, len(self.layer_dim)):
             fm = tf.add(tf.matmul(fm, weights['l%d' % i]), weights['b%d' % i])
             fm = tf.nn.relu(fm)
-            fm = tf.nn.dropout(fm, drop)
+            fm = tf.layers.dropout(fm, drop)
 
         fm = tf.matmul(fm, weights['pred']) + weights['bias']
         emb_bias = tf.nn.embedding_lookup_sparse(weights['emb_bias'], fea, None, combiner="mean")
-        return fm + emb_bias
+        return fm + emb_bias + ftrl
 
     def batch_norm_layer(self, x, train_phase, scope_bn):
         # tf.layers.batch_normalization()

@@ -17,18 +17,6 @@ def get_pair_by_pred(filename):
         yield label, prob
 
 
-# def get_distinct(filename):
-#     probs = []
-#     for label, prob in get_pair_by_pred(filename):
-#         probs += [prob]
-#     probs = np.asarray(probs)
-#     mi, mx = probs.min(), probs.max()
-#     print mi, mx
-#     dists = np.linspace(mi, mx, 30)
-#     print dists
-#     return dists
-
-
 def get_distinct(filename):
     probs = []
     for label, prob in get_pair_by_pred(filename):
@@ -36,11 +24,23 @@ def get_distinct(filename):
     probs = np.asarray(probs)
     mi, mx = probs.min(), probs.max()
     print mi, mx
-    dists = []
-    for i in range(5, 100+1, 5):
-        dists += [np.percentile(probs, i)]
+    dists = np.linspace(mi, mx, 30)
     print dists
     return dists
+
+
+# def get_distinct(filename):
+#     probs = []
+#     for label, prob in get_pair_by_pred(filename):
+#         probs += [prob]
+#     probs = np.asarray(probs)
+#     mi, mx = probs.min(), probs.max()
+#     print mi, mx
+#     dists = []
+#     for i in range(0, 100+1, 2):
+#         dists += [np.percentile(probs, i)]
+#     print dists
+#     return dists
 
 
 def get_dist_idx(dists, value):
@@ -60,11 +60,15 @@ def get_distinct_diff(dists, filename):
         labels[idx] += [label]
     factor = []
     for idx in range(dist_num):
-        mean_prob = np.asarray(probs[idx]).mean()
-        mean_label = np.asarray(labels[idx]).mean()
-        f = mean_label / mean_prob
+        try:
+            mean_prob = np.asarray(probs[idx]).mean()
+            mean_label = np.asarray(labels[idx]).mean()
+            f = mean_label / mean_prob
+        except:
+            f = 0.0
         factor += [f]
         print idx, f, len(probs[idx])
+    # print np.sum(np.sum(labels)) / np.sum(np.sum(probs))
     return factor
 
 
@@ -73,6 +77,10 @@ def process(dists, factor, filename):
     cal = 0.0
     for ct, (label, prob) in enumerate(get_pair_by_pred(filename)):
         idx = get_dist_idx(dists, prob)
+        if prob <= 0.001:
+            prob = 0.001
+        elif prob >= 0.999:
+            prob = 0.999
         ori += label * math.log(prob) + (1 - label) * math.log(1 - prob)
         prob *= factor[idx]
         cal += label * math.log(prob) + (1 - label) * math.log(1 - prob)
