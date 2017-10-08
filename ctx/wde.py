@@ -10,12 +10,16 @@ class WDE(NET):
         # 'deep_feature_id': tf.VarLenFeature(tf.int64),
         'fid': tf.VarLenFeature(tf.int64),
         # 'instance_id': tf.FixedLenFeature(1, tf.int64),
-        'iid': tf.FixedLenFeature(1, tf.int64),
+        # 'iid': tf.FixedLenFeature(1, tf.int64),
+        'iid': tf.VarLenFeature(tf.string),
     }
 
     def inference(self, fea, drop=0.4):
         # wide_fea = fea['wide_feature_id']
         # deep_fea = fea['deep_feature_id']
+        self.ema_factor = 0.992
+        self.step = 10
+        
         wide_fea = fea['fid']
         deep_fea = fea['fid']
         
@@ -51,7 +55,7 @@ class WDE(NET):
                 stddev=1.0 / math.sqrt(float(self.layer_dim[-1])))
             logits = tf.layers.dense(pre_layer, 1, name="logists",
                                      kernel_initializer=init)
-            merge = wide + logits * 10
+            merge = wide / 4 + logits
             # logits = tf.clip_by_value(logits, -5, 5)
 
         return merge, tf.reduce_mean(wide), tf.reduce_mean(logits)

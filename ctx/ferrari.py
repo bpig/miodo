@@ -72,7 +72,10 @@ def restore_model(sess, model_path, use_ema=True):
 
 def pred(cf, model, env, data):
     kv = data.read(model.feature_map)
-    logits = model.inference(kv, 0.0)
+    if model.model == "WDE":
+        logits, _, _ = model.inference(kv, 0.0)
+    else:
+        logits = model.inference(kv, 0.0)
 
     prob = tf.sigmoid(logits)
 

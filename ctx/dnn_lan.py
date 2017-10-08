@@ -40,7 +40,7 @@ class DNNLAN(NET):
                 stddev=1.0 / math.sqrt(float(self.layer_dim[-1])))
             logits = tf.layers.dense(pre_layer, 1, name="logists",
                                      kernel_initializer=init)
-            logits = tf.clip_by_value(logits, -5, 5)
+            # logits = tf.clip_by_value(logits, -5, 5)
 
         return logits
 

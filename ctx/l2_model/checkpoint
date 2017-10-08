@@ -1,0 +1,2 @@
+model_checkpoint_path: "ctx.ckpt-final"
+all_model_checkpoint_paths: "ctx.ckpt-final"
