@@ -87,7 +87,7 @@ class NET(object):
         assert len(weights) == self.sparse_dim, len(weights)
         weights = np.asarray(weights, dtype=np.float32).reshape((-1, 1))
         return weights
-        
+
     @staticmethod
     def get_weight_size(self):
         vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
@@ -150,8 +150,7 @@ class NET(object):
 
         with tf.control_dependencies(opts):
             with tf.control_dependencies(clip_all_weights):
-                train_op = ema.apply(
-                    remove_opt_var(tf.trainable_variables()))
+                train_op = ema.apply(tf.trainable_variables())
         return train_op
 
     def loss_op(self, labels, logits):

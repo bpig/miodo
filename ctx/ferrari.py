@@ -59,7 +59,7 @@ def restore_model(sess, model_path, use_ema=True):
     global_step = tf.train.get_or_create_global_step()
     if use_ema:
         ema = tf.train.ExponentialMovingAverage(0.995, global_step)
-        ema.apply(remove_opt_var(tf.trainable_variables()))
+        ema.apply(tf.trainable_variables())
         variables_to_restore = ema.variables_to_restore()
 
         print variables_to_restore
