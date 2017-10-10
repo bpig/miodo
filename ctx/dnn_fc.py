@@ -62,10 +62,11 @@ class DNNFC(NET):
         with tf.variable_scope("concat"):
             init = tf.truncated_normal_initializer(
                 stddev=1.0 / math.sqrt(float(self.layer_dim[-1])))
-            logits = tf.layers.dense(pre_layer, 1, name="logists",
+            layer = tf.concat([pre_layer, ftrl], axis=1)
+            logits = tf.layers.dense(layer, 1, name="logists",
                                      kernel_initializer=init)
             # logits = bn_layer(logits)
-            logits += ftrl
+            logits = ftrl + logits
 
         return logits
 

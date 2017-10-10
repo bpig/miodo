@@ -64,8 +64,12 @@ def logloss(filename):
         y = float(sp[0])
         p = float(sp[1])
 
-        # if p < 0.017:
-        #     p = 0.017
+        if 0.5 <= p < 0.6:
+            p = 0.5
+
+        if p < 0.001:
+            p *= 1.1
+            
         # elif p > 0.983:
         #     p = 0.983
             

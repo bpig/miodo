@@ -10,9 +10,13 @@ def dump():
     dirname = "/user/h_miui_ad/dev/wwxu/exp/tf/rfrecord/dw/opt3_merged_30_100"
     dirname = "/user/h_miui_ad/dev/wwxu/exp/tf/rfrecord/cross/opt7_100_cross_opt3_100"
     dirname = "/user/h_miui_ad/dev/wwxu/exp/tf/rfrecord/cross/opt7_30_cross_opt3_100"
+    dirname = "/user/h_miui_ad/dev/wwxu/exp/tf/rfrecord/opt5_150"
+    dirname = "/user/h_miui_ad/dev/wwxu/exp/tf/rfrecord/cross/27/opt5_150_cross_opt4_100"
+    dirname = "/user/h_miui_ad/dev/wwxu/exp/tf/rfrecord/opt5_150/cotg.2"
+    dirname = "/user/h_miui_ad/dev/wwxu/exp/tf/rfrecord/cross/opt5_150_cross_opt4_120"
     dirname += '/date=%2d'
     date = range(20, 31) + range(32, 34)
-    # date = range(20, 24) 
+    #date = range(20, 31) 
     # date = range(11, 24)
 
     print date

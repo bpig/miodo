@@ -145,7 +145,7 @@ def train(cf, model, env, data):
         tf.global_variables_initializer().run()
         tf.local_variables_initializer().run()
 
-        # restore_model(sess, model_path + "-final")
+        restore_model(sess, model_path + "-final")
 
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord, sess=sess)

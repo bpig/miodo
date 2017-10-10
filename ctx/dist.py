@@ -13,19 +13,24 @@ def get_pair_by_pred(filename):
         line = line.strip()
         if not line:
             continue
-        label, prob, _ = map(float, line.split())
-        yield label, prob
+        try:
+            _, prob = map(float, line.split(","))
+        except:
+            continue
+        yield prob
 
 
 def get_distinct(filename):
     probs = []
-    for label, prob in get_pair_by_pred(filename):
+    for prob in get_pair_by_pred(filename):
         probs += [prob]
     probs = np.asarray(probs)
     mi, mx = probs.min(), probs.max()
     print mi, mx
     dists = np.linspace(mi, mx, 20)
-    print dists
+    # for i, d in enumerate(dists):
+    #     print "%3d  %.5f" % (i, d)
+#    print dists
     return dists
 
 
@@ -53,23 +58,11 @@ def get_dist_idx(dists, value):
 def get_distinct_diff(dists, filename):
     dist_num = len(dists) - 1
     probs = [[] for _ in range(dist_num)]
-    labels = [[] for _ in range(dist_num)]
-    for label, prob in get_pair_by_pred(filename):
+    for prob in get_pair_by_pred(filename):
         idx = get_dist_idx(dists, prob)
         probs[idx] += [prob]
-        labels[idx] += [label]
-    factor = []
     for idx in range(dist_num):
-        try:
-            mean_prob = np.asarray(probs[idx]).mean()
-            mean_label = np.asarray(labels[idx]).mean()
-            f = mean_label / mean_prob
-        except:
-            f = 0.0
-        factor += [f]
-        print "%3d" % idx, "  %.5f" % dists[idx],"  %.3f" % f, "%8d" % len(probs[idx])
-    # print np.sum(np.sum(labels)) / np.sum(np.sum(probs))
-    return factor
+        print "%3d" % idx, "  %.6f" % dists[idx], "%8d" % len(probs[idx])
 
 
 def process(dists, factor, filename):
@@ -105,5 +98,6 @@ if __name__ == "__main__":
     print mtime, filename, filesize
 
     dists = get_distinct(filename)
-    factors = get_distinct_diff(dists, filename)
-    process(dists, factors, filename)
+    get_distinct_diff(dists, filename)
+    
+    # process(dists, factors, filename)

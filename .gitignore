@@ -20,3 +20,7 @@ v1
 lan_*
 lab
 pred_result
+ctx/cotg.2/
+ctx/cross_opt5/
+note*
+nn_note
