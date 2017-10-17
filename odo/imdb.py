@@ -171,7 +171,7 @@ def train():
 
     for var in tf.trainable_variables():
         if not "bias" in var.name:
-            max_norm_regularizer(var, 0.1, name=var.name[:-2] + "_norm")
+            max_norm_regularizer(var, 1.0, name=var.name[:-2] + "_norm")
 
     with tf.control_dependencies([opts]):
         training_op = ema.apply(tf.trainable_variables())
