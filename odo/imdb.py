@@ -51,7 +51,7 @@ def infer(fea, training=True):
         # cell = tf.contrib.rnn.LSTMCell(num_units=8, use_peepholes=True)
         layers = [tf.contrib.rnn.BasicLSTMCell(num_units=12,
                                                activation=leaky_relu)
-                  for layer in range(4)]
+                  for layer in range(1)]
         # cell = tf.contrib.rnn.BasicLSTMCell(num_units=8)
         if training:
             layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
