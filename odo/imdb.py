@@ -46,8 +46,8 @@ def infer(fea, training=True):
     X = tf.stack(X, axis=1)
     y = tf.to_float(fea['label'])
 
+    keep_prob = 0.5
     with tf.variable_scope("lstm"):
-        keep_prob = 0.5
         # cell = tf.contrib.rnn.LSTMCell(num_units=8, use_peepholes=True)
         layers = [tf.contrib.rnn.BasicLSTMCell(num_units=12,
                                                activation=tf.nn.relu)
@@ -63,7 +63,11 @@ def infer(fea, training=True):
 
     with tf.variable_scope("dnn"):
         logits = tf.layers.dense(states, 12, activation=tf.nn.relu)
+        if training:
+            logits = tf.nn.dropout(logits, 0.5)
         logits = tf.layers.dense(logits, 12, activation=tf.nn.relu)
+        if training:
+            logits = tf.nn.dropout(logits, 0.5)
         logits = tf.layers.dense(logits, 1)
 
     with tf.variable_scope("loss"):
@@ -135,7 +139,7 @@ def train():
     grads = adam.compute_gradients(loss)
     for i, (g, v) in enumerate(grads):
         if g is not None:
-            grads[i] = (tf.clip_by_norm(g, 5), v)
+            grads[i] = (tf.clip_by_norm(g, 4), v)
     training_op = adam.apply_gradients(grads, global_step=global_step)
 
     tf.get_variable_scope().reuse_variables()
