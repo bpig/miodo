@@ -41,14 +41,14 @@ def infer(fea, training=True):
     sparse_dim = 410315
     X = []
     with tf.variable_scope("embed"):
-        embed_dim = 24
+        embed_dim = 32
         init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(float(sparse_dim)))
         weights = tf.get_variable("weights", [sparse_dim, embed_dim],
                                   initializer=init)
         biases = tf.get_variable("biases", [embed_dim], initializer=tf.zeros_initializer)
         for i in range(1, 13):
             x = fea['%df' % i]
-            embed = tf.nn.embedding_lookup_sparse(weights, x, None, combiner="mean")
+            embed = tf.nn.embedding_lookup_sparse(weights, x, None, combiner="mean") + biases
             X += [leaky_relu(embed)]
 
     X1 = tf.stack(X, axis=1)
