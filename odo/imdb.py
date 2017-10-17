@@ -84,7 +84,7 @@ def infer(fea, training=True):
         bw_cell,
         X1,
         dtype=tf.float32,
-        sequence_length=12
+        sequence_length=[12] * 64
     )
 
     with tf.variable_scope("dnn"):
