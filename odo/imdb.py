@@ -43,7 +43,7 @@ def infer(fea, training=True):
             embed = tf.nn.embedding_lookup_sparse(weights, x, None, combiner="mean")
             X += [leaky_relu(embed)]
 
-    X = tf.stack(X, axis=1)
+    X1 = tf.stack(X, axis=1)
     X2 = tf.stack(X[::-1], axis=1)
     y = tf.to_float(fea['label'])
 
@@ -57,7 +57,7 @@ def infer(fea, training=True):
         if training:
             layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
         cell = tf.contrib.rnn.MultiRNNCell(layers)
-        outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
+        outputs, states = tf.nn.dynamic_rnn(cell, X1, dtype=tf.float32)
         states1 = states[-1][1]
         # states = tf.concat(axis=1, values=states)
 
