@@ -90,7 +90,8 @@ def infer(fea, training=True):
         )
 
         f, b = states
-        states = tf.concat([f[-1][1], b[-1][1]], 1)
+        # states = tf.concat([f[-1][1], b[-1][1]], 1)
+        states = tf.concat([f[-1][1]], 1)
 
         # states = tf.concat(outputs, 2)
         # states = tf.reshape(states, (-1, 12))
