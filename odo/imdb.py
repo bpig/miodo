@@ -63,11 +63,11 @@ def infer(fea, training=True):
 
     with tf.variable_scope("dnn"):
         logits = tf.layers.dense(states, 12, activation=tf.nn.relu)
-        if training:
-            logits = tf.nn.dropout(logits, 0.5)
+        # if training:
+        #     logits = tf.nn.dropout(logits, 0.5)
         logits = tf.layers.dense(logits, 12, activation=tf.nn.relu)
-        if training:
-            logits = tf.nn.dropout(logits, 0.5)
+        # if training:
+        #     logits = tf.nn.dropout(logits, 0.5)
         logits = tf.layers.dense(logits, 1)
 
     with tf.variable_scope("loss"):
