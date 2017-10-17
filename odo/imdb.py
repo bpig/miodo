@@ -36,7 +36,7 @@ def infer(fea, training=True):
         biases = tf.get_variable("biases", [embed_dim], initializer=tf.zeros_initializer)
         for i in range(1, 13):
             x = fea['%df' % i]
-            embed = tf.nn.embedding_lookup_sparse(weights, x, None, combiner="sum") + biases
+            embed = tf.nn.embedding_lookup_sparse(weights, x, None, combiner="mean") + biases
             X += [tf.nn.relu(embed)]
 
     X = tf.stack(X, axis=1)
