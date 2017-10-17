@@ -38,7 +38,7 @@ def infer(fea, training=True):
         weights = tf.get_variable("weights", [sparse_dim, embed_dim],
                                   initializer=init)
         biases = tf.get_variable("biases", [embed_dim], initializer=tf.zeros_initializer)
-        for i in range(12, 0, -1)[-6:]:
+        for i in range(1, 13)[:6]:
             x = fea['%df' % i]
             embed = tf.nn.embedding_lookup_sparse(weights, x, None, combiner="mean")
             X += [leaky_relu(embed)]
