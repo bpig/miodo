@@ -41,7 +41,7 @@ def infer(fea, training=True):
     sparse_dim = 410315
     X = []
     with tf.variable_scope("embed"):
-        embed_dim = 64
+        embed_dim = 128
         init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(float(sparse_dim)))
         weights = tf.get_variable("weights", [sparse_dim, embed_dim],
                                   initializer=init)
@@ -58,7 +58,7 @@ def infer(fea, training=True):
     keep_prob = 0.5
     with tf.variable_scope("lstm1"):
         # cell = tf.contrib.rnn.LSTMCell(num_units=8, use_peepholes=True)
-        layers = [tf.contrib.rnn.BasicLSTMCell(num_units=12,
+        layers = [tf.contrib.rnn.BasicLSTMCell(num_units=16,
                                                activation=tf.nn.relu)
                   for _ in range(2)]
         # cell = tf.contrib.rnn.BasicLSTMCell(num_units=8)
@@ -70,7 +70,7 @@ def infer(fea, training=True):
         # states = tf.concat(axis=1, values=states)
 
     with tf.variable_scope("lstm2"):
-        layers = [tf.contrib.rnn.BasicLSTMCell(num_units=12,
+        layers = [tf.contrib.rnn.BasicLSTMCell(num_units=16,
                                                activation=tf.nn.relu)
                   for _ in range(2)]
         if training:
@@ -111,7 +111,7 @@ def dump_pred(ans, fout):
 def restore_model(sess, model_path, use_ema=True):
     global_step = tf.train.get_or_create_global_step()
     if use_ema:
-        ema = tf.train.ExponentialMovingAverage(0.995, global_step)
+        ema = tf.train.ExponentialMovingAverage(0.991, global_step)
         ema.apply(tf.trainable_variables())
         variables_to_restore = ema.variables_to_restore()
 
@@ -167,7 +167,7 @@ def train():
             grads[i] = (tf.clip_by_norm(g, 5), v)
     opts = adam.apply_gradients(grads, global_step=global_step)
 
-    ema = tf.train.ExponentialMovingAverage(0.99, global_step)
+    ema = tf.train.ExponentialMovingAverage(0.991, global_step)
 
     for var in tf.trainable_variables():
         if not "bias" in var.name:
