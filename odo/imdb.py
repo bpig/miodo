@@ -46,7 +46,7 @@ def train():
     training_op = optimizer.minimize(loss)
     global_step = tf.train.create_global_step()
 
-    tf.get_variable_scope().reuse_variables(True)
+    tf.get_variable_scope().reuse_variables()
     loss2 = infer(fea_valid)
 
     init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
