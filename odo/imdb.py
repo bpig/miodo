@@ -67,9 +67,9 @@ def train():
     global_step = tf.train.create_global_step()
     adam = tf.train.AdamOptimizer(learning_rate=0.001)
     grads = adam.compute_gradients(loss)
-    for i, (g, v) in enumerate(grads):
-        if g is not None:
-            grads[i] = (tf.clip_by_norm(g, 50), v)
+    # for i, (g, v) in enumerate(grads):
+    #     if g is not None:
+    #         grads[i] = (tf.clip_by_norm(g, 50), v)
     training_op = adam.apply_gradients(grads, global_step=global_step)
 
     tf.get_variable_scope().reuse_variables()
