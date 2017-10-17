@@ -144,7 +144,7 @@ def train():
 
     ema = tf.train.ExponentialMovingAverage(0.992, global_step)
 
-    with tf.control_dependencies(opts):
+    with tf.control_dependencies([opts]):
         training_op = ema.apply(tf.trainable_variables())
 
     tf.get_variable_scope().reuse_variables()
