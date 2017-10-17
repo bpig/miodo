@@ -11,6 +11,14 @@ def leaky_relu(z, name=None):
     return tf.maximum(0.01 * z, z, name=name)
 
 
+def max_norm_regularizer(weights, threshold=0.1, axes=1, name="max_norm", collection="max_norm"):
+    if threshold == 0.0:
+        return
+    clipped = tf.clip_by_norm(weights, clip_norm=threshold, axes=axes)
+    clip_weights = tf.assign(weights, clipped, name=name)
+    tf.add_to_collection(collection, clip_weights)
+
+
 class TrainLog():
     def __init__(self, step=10):
         self.aa = 0.0
@@ -161,6 +169,9 @@ def train():
 
     ema = tf.train.ExponentialMovingAverage(0.99, global_step)
 
+    for var in tf.trainable_variables():
+        max_norm_regularizer(var, 0.1, name=var.name[:-2] + "_norm")
+
     with tf.control_dependencies([opts]):
         training_op = ema.apply(tf.trainable_variables())
 
@@ -177,10 +188,15 @@ def train():
         saver = tf.train.Saver(write_version=tf.train.SaverDef.V2, max_to_keep=10)
         model_path = "model/imdb"
 
+        clip_all_weights = tf.get_collection("max_norm")
+        print "max_norm var:"
+        print clip_all_weights
+
         try:
             while not coord.should_stop():
                 gs, _, l, l2 = sess.run([global_step, training_op, loss, loss2])
                 tl.run(gs, l, l2)
+                sess.run(clip_all_weights)
         except tf.errors.OutOfRangeError as e:
             pass
         finally:
