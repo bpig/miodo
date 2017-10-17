@@ -33,7 +33,7 @@ def infer(fea, training=True):
     sparse_dim = 410315
     X = []
     with tf.variable_scope("embed"):
-        embed_dim = 32
+        embed_dim = 64
         init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(float(sparse_dim)))
         weights = tf.get_variable("weights", [sparse_dim, embed_dim],
                                   initializer=init)
@@ -75,12 +75,12 @@ def infer(fea, training=True):
         states = tf.concat([states1, states2], 1)
         init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(24.0))
         logits = tf.layers.dense(states, 12, activation=leaky_relu, kernel_initializer=init)
-        # if training:
-        #     logits = tf.nn.dropout(logits, 0.5)
+        if training:
+            logits = tf.nn.dropout(logits, 0.8)
         init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(12.0))
         logits = tf.layers.dense(logits, 12, activation=leaky_relu, kernel_initializer=init)
-        # if training:
-        #     logits = tf.nn.dropout(logits, 0.5)
+        if training:
+            logits = tf.nn.dropout(logits, 0.8)
         logits = tf.layers.dense(logits, 1)
 
     with tf.variable_scope("loss"):
