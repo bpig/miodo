@@ -135,7 +135,11 @@ def train():
     loss, _ = infer(fea)
 
     global_step = tf.train.create_global_step()
-    adam = tf.train.AdamOptimizer(learning_rate=0.001)
+    lr = tf.train.exponential_decay(
+        0.001, global_step, 500,
+        0.5, staircase=True)
+
+    adam = tf.train.AdamOptimizer(learning_rate=lr)
     grads = adam.compute_gradients(loss)
     for i, (g, v) in enumerate(grads):
         if g is not None:
