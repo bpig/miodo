@@ -88,7 +88,7 @@ def infer(fea, training=True):
             # sequence_length=[12] * 64
         )
         f, b = states
-        states = tf.concat([f[-1], b[-1]], 1)
+        states = tf.concat([f, b], 1)
 
     with tf.variable_scope("dnn"):
         # states = tf.concat([states1, states2], 1)
