@@ -18,7 +18,7 @@ if __name__ == "__main__":
         assert len(items) == 3
         # if float(items[1]) <= 0.01:
         # items[1] = "0.01"
-        ans += [[int(items[2]), items[1]]]
+        ans += [[items[2], items[1]]]
 
     ans = sorted(ans, key=lambda x: x[0])
     for key, score in ans:
