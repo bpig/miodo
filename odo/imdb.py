@@ -55,7 +55,7 @@ def infer(fea, training=True):
     X2 = tf.stack(X[::-1], axis=1)
     y = tf.to_float(fea['label'])
 
-    keep_prob = 0.5
+    keep_prob = 0.4
     with tf.variable_scope("lstm1"):
         # cell = tf.contrib.rnn.LSTMCell(num_units=8, use_peepholes=True)
         layers = [tf.contrib.rnn.BasicLSTMCell(num_units=12,
@@ -184,7 +184,7 @@ def train():
 
     for var in tf.trainable_variables():
         if not "bias" in var.name:
-            max_norm_regularizer(var, 0.8, name=var.name[:-2] + "_norm")
+            max_norm_regularizer(var, 1.1, name=var.name[:-2] + "_norm")
 
     with tf.control_dependencies([opts]):
         training_op = ema.apply(tf.trainable_variables())
