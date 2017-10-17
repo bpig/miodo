@@ -51,13 +51,14 @@ def infer(fea, training=True):
         # cell = tf.contrib.rnn.LSTMCell(num_units=8, use_peepholes=True)
         layers = [tf.contrib.rnn.BasicLSTMCell(num_units=8,
                                                activation=tf.nn.relu)
-                  for layer in range(1)]
+                  for layer in range(3)]
         # cell = tf.contrib.rnn.BasicLSTMCell(num_units=8)
         if training:
             layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
         cell = tf.contrib.rnn.MultiRNNCell(layers)
         outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
-        states = states[-1]
+        states = tf.concat(axis=1, values=states)
+        # states = states[-1]
 
     with tf.variable_scope("dnn"):
         logits = tf.layers.dense(states, 8, activation=tf.nn.relu)
