@@ -2,11 +2,9 @@ from args import *
 from common import *
 
 
-def list_dir(top_dir, begin, end):
-    ans = []
-    for d in range(begin, end + 1):
-        prefix = "%s/date=%2d/" % (top_dir, d)
-        ans += [prefix + _ for _ in os.listdir(prefix) if _.startswith("part")]
+def list_dir(top_dir, key):
+    prefix = top_dir + "/" + key
+    ans = [prefix + _ for _ in os.listdir(prefix) if _.startswith("part")]
     random.shuffle(ans)
     return ans
 
@@ -22,14 +20,10 @@ def read_pred():
 
 
 def read_data():
-    top_dir = FLAGS.top_dir
+    top_dir = "opt1_0.07"
 
-    b, e = eval("[%s]" % FLAGS.train)
-    # train_dir = list_dir(top_dir, b, e)
-    train_dir = ["short.dt"]
-    b, e = eval("[%s]" % FLAGS.valid)
-    # valid_dir = list_dir(top_dir, b, e)
-    valid_dir = ["short.dt"]
+    train_dir = list_dir(top_dir, "train")
+    valid_dir = list_dir(top_dir, "test")
 
     print "train dir len", len(train_dir)
     print "valid dir len", len(valid_dir)

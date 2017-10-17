@@ -3,60 +3,65 @@
 
 # http://www.iro.umontreal.ca/~lisa/deep/data/imdb.pkl
 
-import tflearn
-import numpy as np
-from tflearn.data_utils import to_categorical, pad_sequences
-from tflearn.datasets import imdb
+from data import *
+from common import *
 
-train, test, _ = imdb.load_data(path='imdb.pkl', n_words=10000, valid_portion=0.1)
-print "finish load data"
 
-trainX, trainY = train
-testX, testY = test
+def infer(fea):
+    sparse_dim = 410315
+    X = []
+    with tf.variable_scope("embed"):
+        init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(float(sparse_dim)))
+        weights = tf.get_variable("weights", [sparse_dim, 128],
+                                  initializer=init)
+        biases = tf.get_variable("biases", [128], initializer=tf.zeros_initializer)
+        for i in range(1, 13):
+            x = fea['%df' % i]
+            embed = tf.nn.embedding_lookup_sparse(weights, x, None, combiner="sum") + biases
+            X += [tf.nn.relu(embed)]
 
-trainX = pad_sequences(trainX, maxlen=100, value=0.)
-testX = pad_sequences(testX, maxlen=100, value=0.)
+    X = tf.stack(X, axis=1)
+    y = tf.to_float(fea['label'])
 
-# converting labels to binary vectors
-trainY = to_categorical(trainY, nb_classes=2)
-testY = to_categorical(testY, nb_classes=2)
+    basic_cell = tf.contrib.rnn.LSTMCell(num_units=128, use_peepholes=True)
+    outputs, states = tf.nn.dynamic_rnn(basic_cell, X, dtype=tf.float32)
+    states = states[-1]
 
-net = tflearn.input_data([None, 100])
+    logits = tf.layers.dense(states, 128, activation=tf.nn.relu)
+    logits = tf.layers.dense(logits, 1)
 
-net1 = tflearn.embedding(net, input_dim=10000, output_dim=128)
-net1 = tflearn.lstm(net1, 128, dropout=0.5)
-# net = tflearn.fully_connected(net1, 2, activation='softmax')
+    xentropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=y, logits=logits)
+    loss = tf.reduce_mean(xentropy)
+    return loss
 
-net2 = tflearn.fully_connected(net, 128, activation="relu")
-# net = tflearn.fully_connected(net2, 2, activation="softmax")
 
-net = tflearn.merge([net1, net2], mode='concat')
-net = tflearn.fully_connected(net, 2, activation="softmax")
+def train():
+    fea, fea_valid = read_data()
+    loss = infer(fea)
 
-net = tflearn.regression(net, optimizer='adam', learning_rate=0.0001, loss='categorical_crossentropy')
+    optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
+    training_op = optimizer.minimize(loss)
+    global_step = tf.train.create_global_step()
 
-model = tflearn.DNN(net, tensorboard_verbose=0)
+    tf.get_variable_scope().reuse_variables()
+    loss2 = infer(fea_valid)
 
-model.fit(trainX, trainY, validation_set=(testX, testY), show_metric=False, batch_size=32, n_epoch=10)
+    init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
+    with tf.Session() as sess:
+        sess.run(init_op)
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(coord=coord, sess=sess)
 
-# lstm+dnn
-# Training Step: 704  | total loss: 4.15139 | time: 87.095s
-# | Adam | epoch: 001 | loss: 4.15139 | val_loss: 4.60098 -- iter: 22500/22500
+        try:
+            while not coord.should_stop():
+                gs, _, l, l2 = sess.run([global_step, training_op, loss, loss2])
+                print l, l2
+        except tf.errors.OutOfRangeError as e:
+            pass
+        finally:
+            coord.request_stop()
+            coord.join(threads)
 
-# lstm
-# Training Step: 704  | total loss: 10.80964 | time: 2.720s
-# | Adam | epoch: 001 | loss: 10.80964 | val_loss: 11.10966 -- iter: 22500/22500
 
-# dnn
-# Training Step: 704  | total loss: 3.67918 | time: 2.661s
-# | Adam | epoch: 001 | loss: 3.67918 | val_loss: 3.71019 -- iter: 22500/22500
-
-# lstm 10
-# Training Step: 7040  | total loss: 0.20675 | time: 87.094s
-# | Adam | epoch: 010 | loss: 0.20675 | val_loss: 0.44841 -- iter: 22500/22500
-
-# dnn+lstm 10
-# Training Step: 7040  | total loss: 0.14053 | time: 91.280s
-# | Adam | epoch: 010 | loss: 0.14053 | val_loss: 0.59019 -- iter: 22500/22500
 if __name__ == "__main__":
-    pass
+    train()
