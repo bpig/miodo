@@ -87,10 +87,7 @@ def infer(fea, training=True):
             bw_cell,
             X1,
             dtype=tf.float32,
-            # sequence_length=[12] * 64
         )
-        #
-        # states = tf.concat(outputs, 2)
         f, b = states
         states = tf.concat([f[-1][1], b[-1][1]], 1)
 
@@ -187,7 +184,7 @@ def train():
 
     for var in tf.trainable_variables():
         if not "bias" in var.name:
-            max_norm_regularizer(var, 0.93, name=var.name[:-2] + "_norm")
+            max_norm_regularizer(var, 0.8, name=var.name[:-2] + "_norm")
 
     with tf.control_dependencies([opts]):
         training_op = ema.apply(tf.trainable_variables())
