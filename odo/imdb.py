@@ -89,11 +89,11 @@ def infer(fea, training=True):
             dtype=tf.float32,
         )
 
-        # f, b = states
-        # states = tf.concat([f[-1][1], b[-1][1]], 1)
+        f, b = states
+        states = tf.concat([f[-1][1], b[-1][1]], 1)
 
-        states = tf.concat(outputs, 2)
-        states = tf.reshape(states, (-1, 12))
+        # states = tf.concat(outputs, 2)
+        # states = tf.reshape(states, (-1, 12))
 
     with tf.variable_scope("dnn"):
         # states = tf.concat([states1, states2], 1)
