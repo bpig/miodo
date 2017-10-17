@@ -29,10 +29,11 @@ def infer(fea):
     sparse_dim = 410315
     X = []
     with tf.variable_scope("embed"):
+        embed_dim = 32
         init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(float(sparse_dim)))
-        weights = tf.get_variable("weights", [sparse_dim, 128],
+        weights = tf.get_variable("weights", [sparse_dim, embed_dim],
                                   initializer=init)
-        biases = tf.get_variable("biases", [128], initializer=tf.zeros_initializer)
+        biases = tf.get_variable("biases", [embed_dim], initializer=tf.zeros_initializer)
         for i in range(1, 13):
             x = fea['%df' % i]
             embed = tf.nn.embedding_lookup_sparse(weights, x, None, combiner="sum") + biases
@@ -47,7 +48,7 @@ def infer(fea):
         states = states[-1]
 
     with tf.variable_scope("dnn"):
-        logits = tf.layers.dense(states, 128, activation=tf.nn.relu)
+        logits = tf.layers.dense(states, 32, activation=tf.nn.relu)
         logits = tf.layers.dense(logits, 1)
 
     with tf.variable_scope("loss"):
