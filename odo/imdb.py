@@ -146,7 +146,7 @@ def train():
             grads[i] = (tf.clip_by_norm(g, 5), v)
     opts = adam.apply_gradients(grads, global_step=global_step)
 
-    ema = tf.train.ExponentialMovingAverage(0.992, global_step)
+    ema = tf.train.ExponentialMovingAverage(0.99, global_step)
 
     with tf.control_dependencies([opts]):
         training_op = ema.apply(tf.trainable_variables())
