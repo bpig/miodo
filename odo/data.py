@@ -18,7 +18,7 @@ def read_pred():
 
 
 def read_data():
-    top_dir = "opt1_0.07/"
+    top_dir = "opt1/"
 
     train_dir = list_dir(top_dir, "train/")
     valid_dir = list_dir(top_dir, "test/")
