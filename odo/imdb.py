@@ -106,7 +106,7 @@ def pred():
 
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord, sess=sess)
-        fout = open("lan.ans")
+        fout = open("lan.ans", "w")
 
         try:
             while not coord.should_stop():
