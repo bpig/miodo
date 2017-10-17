@@ -23,15 +23,18 @@ def infer(fea):
     X = tf.stack(X, axis=1)
     y = tf.to_float(fea['label'])
 
-    basic_cell = tf.contrib.rnn.LSTMCell(num_units=128, use_peepholes=True)
-    outputs, states = tf.nn.dynamic_rnn(basic_cell, X, dtype=tf.float32)
-    states = states[-1]
+    with tf.variable_scope("lstm"):
+        basic_cell = tf.contrib.rnn.LSTMCell(num_units=128, use_peepholes=True)
+        outputs, states = tf.nn.dynamic_rnn(basic_cell, X, dtype=tf.float32)
+        states = states[-1]
 
-    logits = tf.layers.dense(states, 128, activation=tf.nn.relu)
-    logits = tf.layers.dense(logits, 1)
+    with tf.variable_scope("dnn"):
+        logits = tf.layers.dense(states, 128, activation=tf.nn.relu)
+        logits = tf.layers.dense(logits, 1)
 
-    xentropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=y, logits=logits)
-    loss = tf.reduce_mean(xentropy)
+    with tf.variable_scope("loss"):
+        xentropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=y, logits=logits)
+        loss = tf.reduce_mean(xentropy)
     return loss
 
 
@@ -43,7 +46,7 @@ def train():
     training_op = optimizer.minimize(loss)
     global_step = tf.train.create_global_step()
 
-    tf.get_variable_scope().reuse_variables()
+    tf.get_variable_scope().reuse_variables(True)
     loss2 = infer(fea_valid)
 
     init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
