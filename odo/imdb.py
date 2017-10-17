@@ -64,8 +64,8 @@ def infer(fea, training=True):
         # cell = tf.contrib.rnn.BasicLSTMCell(num_units=8)
         if training:
             layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
-        # fw_cell = tf.contrib.rnn.MultiRNNCell(layers)
-        fw_cell = layers[0]
+        fw_cell = tf.contrib.rnn.MultiRNNCell(layers)
+        # fw_cell = layers[0]
         # outputs, states = tf.nn.dynamic_rnn(cell, X1, dtype=tf.float32)
         # states1 = states[-1][1]
         # states = tf.concat(axis=1, values=states)
@@ -76,8 +76,8 @@ def infer(fea, training=True):
                   for _ in range(2)]
         if training:
             layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
-        # bw_cell = tf.contrib.rnn.MultiRNNCell(layers)
-        bw_cell = layers[0]
+        bw_cell = tf.contrib.rnn.MultiRNNCell(layers)
+        # bw_cell = layers[0]
         # outputs, states = tf.nn.dynamic_rnn(cell, X2, dtype=tf.float32)
         # states2 = states[-1][1]
 
