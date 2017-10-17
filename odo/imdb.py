@@ -82,7 +82,7 @@ def infer(fea, training=True):
     outputs, _, _ = tf.contrib.rnn.bidirectional_rnn(
         fw_cell,
         bw_cell,
-        embed_dim,
+        X1,
         dtype=tf.float32,
         sequence_length=12
     )
