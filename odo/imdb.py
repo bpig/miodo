@@ -57,7 +57,7 @@ def infer(fea, training=True):
             layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
         cell = tf.contrib.rnn.MultiRNNCell(layers)
         outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
-        state = states[-1][1]
+        states = states[-1][1]
         # states = tf.concat(axis=1, values=states)
         # states = states[-1]
 
