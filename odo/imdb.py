@@ -63,10 +63,11 @@ def infer(fea, training=True):
 
     with tf.variable_scope("dnn"):
         init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(12.0))
-        logits = tf.layers.dense(states, 12, activation=tf.nn.relu, kernel_initializer=init)
+        logits = tf.layers.dense(states, 32, activation=leaky_relu, kernel_initializer=init)
         # if training:
         #     logits = tf.nn.dropout(logits, 0.5)
-        logits = tf.layers.dense(logits, 12, activation=tf.nn.relu, kernel_initializer=init)
+        init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(32.0))
+        logits = tf.layers.dense(logits, 32, activation=leaky_relu, kernel_initializer=init)
         # if training:
         #     logits = tf.nn.dropout(logits, 0.5)
         logits = tf.layers.dense(logits, 1)
