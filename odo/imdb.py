@@ -38,16 +38,17 @@ def infer(fea, training=True):
         weights = tf.get_variable("weights", [sparse_dim, embed_dim],
                                   initializer=init)
         biases = tf.get_variable("biases", [embed_dim], initializer=tf.zeros_initializer)
-        for i in range(1, 13)[6:]:
+        for i in range(1, 13):
             x = fea['%df' % i]
             embed = tf.nn.embedding_lookup_sparse(weights, x, None, combiner="mean")
             X += [leaky_relu(embed)]
 
     X = tf.stack(X, axis=1)
+    X2 = tf.stack(X[::-1], axis=1)
     y = tf.to_float(fea['label'])
 
     keep_prob = 0.5
-    with tf.variable_scope("lstm"):
+    with tf.variable_scope("lstm1"):
         # cell = tf.contrib.rnn.LSTMCell(num_units=8, use_peepholes=True)
         layers = [tf.contrib.rnn.BasicLSTMCell(num_units=12,
                                                activation=tf.nn.relu)
@@ -57,12 +58,22 @@ def infer(fea, training=True):
             layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
         cell = tf.contrib.rnn.MultiRNNCell(layers)
         outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
-        states = states[-1][1]
+        states1 = states[-1][1]
         # states = tf.concat(axis=1, values=states)
-        # states = states[-1]
+
+    with tf.variable_scope("lstm2"):
+        layers = [tf.contrib.rnn.BasicLSTMCell(num_units=12,
+                                               activation=tf.nn.relu)
+                  for _ in range(2)]
+        if training:
+            layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
+        cell = tf.contrib.rnn.MultiRNNCell(layers)
+        outputs, states = tf.nn.dynamic_rnn(cell, X2, dtype=tf.float32)
+        states2 = states[-1][1]
 
     with tf.variable_scope("dnn"):
-        init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(12.0))
+        states = tf.concat([states1, states2], 1)
+        init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(24.0))
         logits = tf.layers.dense(states, 12, activation=leaky_relu, kernel_initializer=init)
         # if training:
         #     logits = tf.nn.dropout(logits, 0.5)
