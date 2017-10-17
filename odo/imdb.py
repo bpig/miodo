@@ -49,7 +49,7 @@ def infer(fea, training=True):
     keep_prob = 0.5
     with tf.variable_scope("lstm"):
         # cell = tf.contrib.rnn.LSTMCell(num_units=8, use_peepholes=True)
-        layers = [tf.contrib.rnn.BasicLSTMCell(num_units=16,
+        layers = [tf.contrib.rnn.BasicLSTMCell(num_units=8,
                                                activation=tf.nn.relu)
                   for layer in range(2)]
         # cell = tf.contrib.rnn.BasicLSTMCell(num_units=8)
@@ -62,11 +62,11 @@ def infer(fea, training=True):
         # states = states[-1]
 
     with tf.variable_scope("dnn"):
-        init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(12.0))
-        logits = tf.layers.dense(states, 12, activation=leaky_relu, kernel_initializer=init)
+        init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(8.0))
+        logits = tf.layers.dense(states, 8, activation=leaky_relu, kernel_initializer=init)
         # if training:
         #     logits = tf.nn.dropout(logits, 0.5)
-        init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(12.0))
+        init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(8.0))
         logits = tf.layers.dense(logits, 8, activation=leaky_relu, kernel_initializer=init)
         # if training:
         #     logits = tf.nn.dropout(logits, 0.5)
