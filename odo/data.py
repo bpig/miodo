@@ -25,14 +25,16 @@ def read_data():
     top_dir = FLAGS.top_dir
 
     b, e = eval("[%s]" % FLAGS.train)
-    train_dir = list_dir(top_dir, b, e)
+    # train_dir = list_dir(top_dir, b, e)
+    train_dir = ["short.dt"]
     b, e = eval("[%s]" % FLAGS.valid)
-    valid_dir = list_dir(top_dir, b, e)
+    # valid_dir = list_dir(top_dir, b, e)
+    valid_dir = ["short.dt"]
 
     print "train dir len", len(train_dir)
     print "valid dir len", len(valid_dir)
 
-    fq = tf.train.string_input_producer(train_dir, num_epochs=1)
+    fq = tf.train.string_input_producer(train_dir, num_epochs=100)
     fea = read_batch(fq)
 
     fq = tf.train.string_input_producer(valid_dir, num_epochs=None)
@@ -83,24 +85,22 @@ def read_batch(filename_queue):
 
 
 def parse_example(batch):
-    if FLAGS.format == "old":
-        feature_map = {
-    'label': tf.FixedLenFeature([1], tf.int64),
-    'deep_feature_index': tf.VarLenFeature(tf.int64),
-    'deep_feature_id': tf.VarLenFeature(tf.int64),
-    'wide_feature_index': tf.VarLenFeature(tf.int64),
-    'wide_feature_id': tf.VarLenFeature(tf.int64),
-    'instance_id': tf.FixedLenFeature([1], tf.int64),
-}
-    else:
-        feature_map = {
-    'label': tf.FixedLenFeature([1], tf.int64),
-    'deep': tf.VarLenFeature(tf.int64),
-    'wide': tf.VarLenFeature(tf.int64),
-    'iid': tf.FixedLenFeature([1], tf.int64),
-}
-        
-        
+    feature_map = {
+        'label': tf.FixedLenFeature([1], tf.int64),
+        '1f': tf.VarLenFeature(tf.int64),
+        '2f': tf.VarLenFeature(tf.int64),
+        '3f': tf.VarLenFeature(tf.int64),
+        '4f': tf.VarLenFeature(tf.int64),
+        '5f': tf.VarLenFeature(tf.int64),
+        '6f': tf.VarLenFeature(tf.int64),
+        '7f': tf.VarLenFeature(tf.int64),
+        '8f': tf.VarLenFeature(tf.int64),
+        '9f': tf.VarLenFeature(tf.int64),
+        '10f': tf.VarLenFeature(tf.int64),
+        '11f': tf.VarLenFeature(tf.int64),
+        '12f': tf.VarLenFeature(tf.int64),
+        'iid': tf.VarLenFeature(tf.string),
+    }
     features = tf.parse_example(
         batch,
         features=feature_map
