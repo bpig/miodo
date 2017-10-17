@@ -79,13 +79,14 @@ def infer(fea, training=True):
         # outputs, states = tf.nn.dynamic_rnn(cell, X2, dtype=tf.float32)
         # states2 = states[-1][1]
 
-    outputs, _ = tf.nn.bidirectional_dynamic_rnn(
-        fw_cell,
-        bw_cell,
-        X1,
-        dtype=tf.float32,
-        # sequence_length=[12] * 64
-    )
+    with tf.variable_scope("bilstm"):
+        outputs, _ = tf.nn.bidirectional_dynamic_rnn(
+            fw_cell,
+            bw_cell,
+            X1,
+            dtype=tf.float32,
+            # sequence_length=[12] * 64
+        )
 
     with tf.variable_scope("dnn"):
         # states = tf.concat([states1, states2], 1)
