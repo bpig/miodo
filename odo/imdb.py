@@ -49,8 +49,8 @@ def infer(fea, training=True):
     keep_prob = 0.5
     with tf.variable_scope("lstm"):
         # cell = tf.contrib.rnn.LSTMCell(num_units=8, use_peepholes=True)
-        layers = [tf.contrib.rnn.BasicLSTMCell(num_units=12)
-                                               # activation=leaky_relu)
+        layers = [tf.contrib.rnn.BasicLSTMCell(num_units=12,
+                                               activation=tf.nn.relu)
                   for _ in range(2)]
         # cell = tf.contrib.rnn.BasicLSTMCell(num_units=8)
         if training:
