@@ -29,7 +29,7 @@ def infer(fea, training=True):
     sparse_dim = 410315
     X = []
     with tf.variable_scope("embed"):
-        embed_dim = 32
+        embed_dim = 6
         init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(float(sparse_dim)))
         weights = tf.get_variable("weights", [sparse_dim, embed_dim],
                                   initializer=init)
@@ -44,14 +44,14 @@ def infer(fea, training=True):
 
     with tf.variable_scope("lstm"):
         keep_prob = 0.5
-        cell = tf.contrib.rnn.LSTMCell(num_units=128, use_peepholes=True)
+        cell = tf.contrib.rnn.LSTMCell(num_units=8, use_peepholes=True)
         if training:
             cell = tf.contrib.rnn.DropoutWrapper(cell, input_keep_prob=keep_prob)
         outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
         states = states[-1]
 
     with tf.variable_scope("dnn"):
-        logits = tf.layers.dense(states, 32, activation=tf.nn.relu)
+        logits = tf.layers.dense(states, 8, activation=tf.nn.relu)
         logits = tf.layers.dense(logits, 1)
 
     with tf.variable_scope("loss"):
