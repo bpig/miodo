@@ -80,7 +80,7 @@ def infer(fea, training=True):
         # states2 = states[-1][1]
 
     with tf.variable_scope("bilstm"):
-        _, states = tf.nn.bidirectional_dynamic_rnn(
+        outputs, states = tf.nn.bidirectional_dynamic_rnn(
             fw_cell,
             bw_cell,
             X1,
@@ -88,7 +88,8 @@ def infer(fea, training=True):
             # sequence_length=[12] * 64
         )
         f, b = states
-        states = tf.concat([f, b], 1)
+        # states = tf.concat([f, b], 1)
+        states = tf.concat(outputs, 2)
 
     with tf.variable_scope("dnn"):
         # states = tf.concat([states1, states2], 1)
