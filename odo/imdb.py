@@ -139,8 +139,13 @@ def train():
     grads = adam.compute_gradients(loss)
     for i, (g, v) in enumerate(grads):
         if g is not None:
-            grads[i] = (tf.clip_by_norm(g, 4), v)
-    training_op = adam.apply_gradients(grads, global_step=global_step)
+            grads[i] = (tf.clip_by_norm(g, 5), v)
+    opts = adam.apply_gradients(grads, global_step=global_step)
+
+    ema = tf.train.ExponentialMovingAverage(0.992, global_step)
+
+    with tf.control_dependencies(opts):
+        training_op = ema.apply(tf.trainable_variables())
 
     tf.get_variable_scope().reuse_variables()
     loss2, _ = infer(fea_valid, training=False)
