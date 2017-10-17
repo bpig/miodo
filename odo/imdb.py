@@ -136,7 +136,7 @@ def train():
 
     global_step = tf.train.create_global_step()
     lr = tf.train.exponential_decay(
-        0.001, global_step, 500,
+        0.001, global_step, 900,
         0.5, staircase=True)
 
     adam = tf.train.AdamOptimizer(learning_rate=lr)
