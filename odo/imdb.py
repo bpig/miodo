@@ -62,12 +62,66 @@ def infer(fea, training=True):
     with tf.variable_scope("loss"):
         xentropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=y, logits=logits)
         loss = tf.reduce_mean(xentropy)
-    return loss
+    return loss, logits
+
+
+def dump_pred(ans, fout):
+    try:
+        prob, label, iid = [_.reshape(-1) for _ in ans]
+    except:
+        ans[-1] = ans[-1].values
+        prob, label, iid = [_.reshape(-1) for _ in ans]
+
+    for v1, v2, v3 in zip(label, prob, iid):
+        print >> fout, v1, v2, v3
+
+
+def restore_model(sess, model_path, use_ema=True):
+    global_step = tf.train.get_or_create_global_step()
+    if use_ema:
+        ema = tf.train.ExponentialMovingAverage(0.995, global_step)
+        ema.apply(tf.trainable_variables())
+        variables_to_restore = ema.variables_to_restore()
+
+        print variables_to_restore
+        saver = tf.train.Saver(variables_to_restore,
+                               write_version=tf.train.SaverDef.V2, max_to_keep=10)
+    else:
+        saver = tf.train.Saver(write_version=tf.train.SaverDef.V2, max_to_keep=10)
+    saver.restore(sess, model_path)
+
+
+def pred():
+    fea = read_pred()
+    _, logits = infer(fea, False)
+    prob = tf.sigmoid(logits)
+    model_path = "model/imdb-final"
+
+    gpu_options = tf.GPUOptions(allow_growth=True)
+    config = tf.ConfigProto(gpu_options=gpu_options)
+
+    with tf.Session(config=config) as sess:
+        tf.local_variables_initializer().run()
+        restore_model(sess, model_path, False)
+
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(coord=coord, sess=sess)
+        fout = open("lan.ans")
+
+        try:
+            while not coord.should_stop():
+                ans = sess.run([prob, fea['label'], fea['iid']])
+                dump_pred(ans, fout)
+        except tf.errors.OutOfRangeError:
+            print "up to epoch limits"
+        finally:
+            coord.request_stop()
+            coord.join(threads)
 
 
 def train():
     fea, fea_valid = read_data()
-    loss = infer(fea)
+    loss, _ = infer(fea)
 
     global_step = tf.train.create_global_step()
     adam = tf.train.AdamOptimizer(learning_rate=0.001)
@@ -78,7 +132,7 @@ def train():
     training_op = adam.apply_gradients(grads, global_step=global_step)
 
     tf.get_variable_scope().reuse_variables()
-    loss2 = infer(fea_valid, training=False)
+    loss2, _ = infer(fea_valid, training=False)
 
     init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
     tl = TrainLog()
@@ -87,6 +141,9 @@ def train():
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord, sess=sess)
 
+        saver = tf.train.Saver(write_version=tf.train.SaverDef.V2, max_to_keep=10)
+        model_path = "model/imdb"
+
         try:
             while not coord.should_stop():
                 gs, _, l, l2 = sess.run([global_step, training_op, loss, loss2])
@@ -94,9 +151,13 @@ def train():
         except tf.errors.OutOfRangeError as e:
             pass
         finally:
+            saver.save(sess, model_path + "-final")  # , global_step=global_step)
             coord.request_stop()
             coord.join(threads)
 
 
 if __name__ == "__main__":
-    train()
+    if len(sys.argv) == 2:
+        pred()
+    else:
+        train()
