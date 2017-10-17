@@ -7,6 +7,24 @@ from data import *
 from common import *
 
 
+class TrainLog():
+    def __init__(self, step=10):
+        self.aa = 0.0
+        self.bb = 0.0
+        self.step = step
+
+    def run(self, gs, loss, loss_valid):
+        factor = 0.99
+        if self.aa == 0.0:
+            self.aa = loss
+            self.bb = loss_valid
+        else:
+            self.aa = self.aa * factor + (1 - factor) * loss
+            self.bb = self.bb * factor + (1 - factor) * loss_valid
+        if gs % self.step == 0:
+            print "%s %5d %.3f %.3f %.3f" % (time.ctime(), gs, loss, self.aa, self.bb)
+
+
 def infer(fea):
     sparse_dim = 410315
     X = []
@@ -50,6 +68,7 @@ def train():
     loss2 = infer(fea_valid)
 
     init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
+    tl = TrainLog()
     with tf.Session() as sess:
         sess.run(init_op)
         coord = tf.train.Coordinator()
@@ -58,7 +77,7 @@ def train():
         try:
             while not coord.should_stop():
                 gs, _, l, l2 = sess.run([global_step, training_op, loss, loss2])
-                print l, l2
+                tl.run(gs, l, l2)
         except tf.errors.OutOfRangeError as e:
             pass
         finally:
