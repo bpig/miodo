@@ -100,12 +100,12 @@ def infer(fea, training=True):
         # states = outputs[-1]
         init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(24.0))
         logits = tf.layers.dense(states, 12, activation=leaky_relu, kernel_initializer=init)
-        # if training:
-        #     logits = tf.nn.dropout(logits, 0.8)
+        if training:
+            logits = tf.nn.dropout(logits, 0.5)
         init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(12.0))
         logits = tf.layers.dense(logits, 12, activation=leaky_relu, kernel_initializer=init)
-        # if training:
-        #     logits = tf.nn.dropout(logits, 0.8)
+        if training:
+            logits = tf.nn.dropout(logits, 0.5)
         logits = tf.layers.dense(logits, 1)
 
     with tf.variable_scope("loss"):
