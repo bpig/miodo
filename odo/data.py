@@ -11,7 +11,7 @@ def list_dir(top_dir, key):
 
 def read_pred():
     top_dir = "opt1/"
-    pred_dir = list_dir(top_dir, "predict/")
+    pred_dir = list_dir(top_dir, "test/")
     print "pred dir len", len(pred_dir)
     fq = tf.train.string_input_producer(pred_dir, num_epochs=1)
     return read_batch(fq)
