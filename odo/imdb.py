@@ -93,7 +93,7 @@ def infer(fea, training=True):
         # states = tf.concat([f[-1][1], b[-1][1]], 1)
 
         states = tf.concat(outputs, 2)
-        states = tf.reshape(states, 12)
+        states = tf.reshape(states, (-1, 24))
 
     with tf.variable_scope("dnn"):
         # states = tf.concat([states1, states2], 1)
