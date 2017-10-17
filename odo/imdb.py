@@ -170,6 +170,7 @@ def train():
     ema = tf.train.ExponentialMovingAverage(0.99, global_step)
 
     for var in tf.trainable_variables():
+        print var.name
         max_norm_regularizer(var, 0.1, name=var.name[:-2] + "_norm")
 
     with tf.control_dependencies([opts]):
