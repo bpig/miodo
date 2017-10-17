@@ -25,7 +25,7 @@ class TrainLog():
             print "%s %5d %.3f %.3f %.3f" % (time.ctime(), gs, loss, self.aa, self.bb)
 
 
-def infer(fea):
+def infer(fea, training=True):
     sparse_dim = 410315
     X = []
     with tf.variable_scope("embed"):
@@ -43,8 +43,11 @@ def infer(fea):
     y = tf.to_float(fea['label'])
 
     with tf.variable_scope("lstm"):
-        basic_cell = tf.contrib.rnn.LSTMCell(num_units=128, use_peepholes=True)
-        outputs, states = tf.nn.dynamic_rnn(basic_cell, X, dtype=tf.float32)
+        keep_prob = 0.5
+        cell = tf.contrib.rnn.LSTMCell(num_units=128, use_peepholes=True)
+        if training:
+            cell = tf.contrib.rnn.DropoutWrapper(cell, input_keep_prob=keep_prob)
+        outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
         states = states[-1]
 
     with tf.variable_scope("dnn"):
@@ -61,12 +64,12 @@ def train():
     fea, fea_valid = read_data()
     loss = infer(fea)
 
-    optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
-    training_op = optimizer.minimize(loss)
     global_step = tf.train.create_global_step()
+    optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
+    training_op = optimizer.minimize(loss, global_step=global_step)
 
     tf.get_variable_scope().reuse_variables()
-    loss2 = infer(fea_valid)
+    loss2 = infer(fea_valid, training=False)
 
     init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
     tl = TrainLog()
