@@ -79,7 +79,7 @@ def infer(fea, training=True):
         # outputs, states = tf.nn.dynamic_rnn(cell, X2, dtype=tf.float32)
         # states2 = states[-1][1]
 
-    outputs, _, _ = tf.contrib.rnn.bidirectional_rnn(
+    outputs, _, _ = tf.nn.bidirectional_dynamic_rnn(
         fw_cell,
         bw_cell,
         X1,
