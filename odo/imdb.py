@@ -64,9 +64,9 @@ def infer(fea, training=True):
         # cell = tf.contrib.rnn.BasicLSTMCell(num_units=8)
         if training:
             layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
-        cell = tf.contrib.rnn.MultiRNNCell(layers)
-        outputs, states = tf.nn.dynamic_rnn(cell, X1, dtype=tf.float32)
-        states1 = states[-1][1]
+        fw_cell = tf.contrib.rnn.MultiRNNCell(layers)
+        # outputs, states = tf.nn.dynamic_rnn(cell, X1, dtype=tf.float32)
+        # states1 = states[-1][1]
         # states = tf.concat(axis=1, values=states)
 
     with tf.variable_scope("lstm2"):
@@ -75,12 +75,21 @@ def infer(fea, training=True):
                   for _ in range(2)]
         if training:
             layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
-        cell = tf.contrib.rnn.MultiRNNCell(layers)
-        outputs, states = tf.nn.dynamic_rnn(cell, X2, dtype=tf.float32)
-        states2 = states[-1][1]
+        bw_cell = tf.contrib.rnn.MultiRNNCell(layers)
+        # outputs, states = tf.nn.dynamic_rnn(cell, X2, dtype=tf.float32)
+        # states2 = states[-1][1]
+
+    outputs, _, _ = tf.contrib.rnn.bidirectional_rnn(
+        fw_cell,
+        bw_cell,
+        embed_dim,
+        dtype=tf.float32,
+        sequence_length=12
+    )
 
     with tf.variable_scope("dnn"):
-        states = tf.concat([states1, states2], 1)
+        # states = tf.concat([states1, states2], 1)
+        states = outputs[-1]
         init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(24.0))
         logits = tf.layers.dense(states, 12, activation=leaky_relu, kernel_initializer=init)
         if training:
