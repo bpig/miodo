@@ -44,7 +44,8 @@ def infer(fea, training=True):
 
     with tf.variable_scope("lstm"):
         keep_prob = 0.5
-        cell = tf.contrib.rnn.LSTMCell(num_units=8, use_peepholes=True)
+        # cell = tf.contrib.rnn.LSTMCell(num_units=8, use_peepholes=True)
+        cell = tf.contrib.rnn.BasicLSTMCell(num_units=8)
         if training:
             cell = tf.contrib.rnn.DropoutWrapper(cell, input_keep_prob=keep_prob)
         outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
