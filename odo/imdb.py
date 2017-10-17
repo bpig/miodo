@@ -7,6 +7,10 @@ from data import *
 from common import *
 
 
+def leaky_relu(z, name=None):
+    return tf.maximum(0.01 * z, z, name=name)
+
+
 class TrainLog():
     def __init__(self, step=10):
         self.aa = 0.0
@@ -36,8 +40,8 @@ def infer(fea, training=True):
         biases = tf.get_variable("biases", [embed_dim], initializer=tf.zeros_initializer)
         for i in range(1, 13):
             x = fea['%df' % i]
-            embed = tf.nn.embedding_lookup_sparse(weights, x, None, combiner="mean") + biases
-            X += [tf.nn.relu(embed)]
+            embed = tf.nn.embedding_lookup_sparse(weights, x, None, combiner="mean")
+            X += [leaky_relu(embed)]
 
     X = tf.stack(X, axis=1)
     y = tf.to_float(fea['label'])
