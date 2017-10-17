@@ -11,7 +11,7 @@ parser.add_argument('--deep_dim', type=int, default=3000000,
 parser.add_argument('--wide_dim', type=int, default=6000000,
                     help='Number of wide features')
 
-parser.add_argument('--batch_size', type=int, default=32,
+parser.add_argument('--batch_size', type=int, default=64,
                     help='Batch size to train')
 
 parser.add_argument('--max_steps', type=int, default=200000,
