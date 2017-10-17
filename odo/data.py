@@ -20,10 +20,10 @@ def read_pred():
 
 
 def read_data():
-    top_dir = "opt1_0.07"
+    top_dir = "opt1_0.07/"
 
-    train_dir = list_dir(top_dir, "train")
-    valid_dir = list_dir(top_dir, "test")
+    train_dir = list_dir(top_dir, "train/")
+    valid_dir = list_dir(top_dir, "test/")
 
     print "train dir len", len(train_dir)
     print "valid dir len", len(valid_dir)
