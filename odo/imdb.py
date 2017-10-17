@@ -41,7 +41,7 @@ def infer(fea, training=True):
     sparse_dim = 410315
     X = []
     with tf.variable_scope("embed"):
-        embed_dim = 32
+        embed_dim = 24
         init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(float(sparse_dim)))
         weights = tf.get_variable("weights", [sparse_dim, embed_dim],
                                   initializer=init)
@@ -151,7 +151,7 @@ def pred():
 
     with tf.Session(config=config) as sess:
         tf.local_variables_initializer().run()
-        restore_model(sess, model_path, False)
+        restore_model(sess, model_path, True)
 
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord, sess=sess)
@@ -198,7 +198,10 @@ def train():
 
     init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
     tl = TrainLog()
-    with tf.Session() as sess:
+    gpu_options = tf.GPUOptions(allow_growth=True)
+    config = tf.ConfigProto(gpu_options=gpu_options)
+
+    with tf.Session(config=config) as sess:
         sess.run(init_op)
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord, sess=sess)
