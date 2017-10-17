@@ -60,7 +60,7 @@ def infer(fea, training=True):
         # cell = tf.contrib.rnn.LSTMCell(num_units=8, use_peepholes=True)
         layers = [tf.contrib.rnn.BasicLSTMCell(num_units=12,
                                                activation=tf.nn.relu)
-                  for _ in range(2)]
+                  for _ in range(4)]
         # cell = tf.contrib.rnn.BasicLSTMCell(num_units=8)
         if training:
             layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
@@ -73,7 +73,7 @@ def infer(fea, training=True):
     with tf.variable_scope("lstm2"):
         layers = [tf.contrib.rnn.BasicLSTMCell(num_units=12,
                                                activation=tf.nn.relu)
-                  for _ in range(2)]
+                  for _ in range(4)]
         if training:
             layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
         bw_cell = tf.contrib.rnn.MultiRNNCell(layers)
@@ -188,7 +188,7 @@ def train():
 
     for var in tf.trainable_variables():
         if not "bias" in var.name:
-            max_norm_regularizer(var, 0.95, name=var.name[:-2] + "_norm")
+            max_norm_regularizer(var, 0.92, name=var.name[:-2] + "_norm")
 
     with tf.control_dependencies([opts]):
         training_op = ema.apply(tf.trainable_variables())
