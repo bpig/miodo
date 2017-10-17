@@ -49,9 +49,9 @@ def infer(fea, training=True):
     with tf.variable_scope("lstm"):
         keep_prob = 0.5
         # cell = tf.contrib.rnn.LSTMCell(num_units=8, use_peepholes=True)
-        layers = [tf.contrib.rnn.BasicLSTMCell(num_units=8,
+        layers = [tf.contrib.rnn.BasicLSTMCell(num_units=6,
                                                activation=tf.nn.relu)
-                  for layer in range(3)]
+                  for layer in range(2)]
         # cell = tf.contrib.rnn.BasicLSTMCell(num_units=8)
         if training:
             layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
@@ -62,7 +62,8 @@ def infer(fea, training=True):
         # states = states[-1]
 
     with tf.variable_scope("dnn"):
-        logits = tf.layers.dense(states, 8, activation=tf.nn.relu)
+        logits = tf.layers.dense(states, 6, activation=tf.nn.relu)
+        logits = tf.layers.dense(logits, 6, activation=tf.nn.relu)
         logits = tf.layers.dense(logits, 1)
 
     with tf.variable_scope("loss"):
