@@ -80,17 +80,19 @@ def infer(fea, training=True):
         # states2 = states[-1][1]
 
     with tf.variable_scope("bilstm"):
-        outputs, _ = tf.nn.bidirectional_dynamic_rnn(
+        _, states = tf.nn.bidirectional_dynamic_rnn(
             fw_cell,
             bw_cell,
             X1,
             dtype=tf.float32,
             # sequence_length=[12] * 64
         )
+        f, b = states
+        states = tf.concat([f[-1], b[-1]], 1)
 
     with tf.variable_scope("dnn"):
         # states = tf.concat([states1, states2], 1)
-        states = outputs[-1]
+        # states = outputs[-1]
         init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(24.0))
         logits = tf.layers.dense(states, 12, activation=leaky_relu, kernel_initializer=init)
         if training:
