@@ -49,10 +49,13 @@ def infer(fea, training=True):
     with tf.variable_scope("lstm"):
         keep_prob = 0.5
         # cell = tf.contrib.rnn.LSTMCell(num_units=8, use_peepholes=True)
-        cell = tf.contrib.rnn.BasicLSTMCell(num_units=8)
+        layers = [tf.contrib.rnn.BasicLSTMCell(num_units=8,
+                                               activation=tf.nn.relu)
+                  for layer in range(3)]
+        # cell = tf.contrib.rnn.BasicLSTMCell(num_units=8)
         if training:
-            cell = tf.contrib.rnn.DropoutWrapper(cell, input_keep_prob=keep_prob)
-        cell = tf.contrib.rnn.MultiRNNCell([cell] * 3)
+            layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
+        cell = tf.contrib.rnn.MultiRNNCell(layers)
         outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
         states = states[-1]
 
