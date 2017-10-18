@@ -65,36 +65,34 @@ def infer(fea, training=True):
         if training:
             layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
         fw_cell = tf.contrib.rnn.MultiRNNCell(layers)
-        # fw_cell = layers[0]
-        # outputs, states = tf.nn.dynamic_rnn(cell, X1, dtype=tf.float32)
-        # states1 = states[-1][1]
+        outputs, states = tf.nn.dynamic_rnn(fw_cell, X1, dtype=tf.float32)
+        states = states[-1][1]
         # states = tf.concat(axis=1, values=states)
 
-    with tf.variable_scope("lstm2"):
-        layers = [tf.contrib.rnn.BasicLSTMCell(num_units=12,
-                                               activation=tf.nn.relu)
-                  for _ in range(2)]
-        if training:
-            layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
-        bw_cell = tf.contrib.rnn.MultiRNNCell(layers)
-        # bw_cell = layers[0]
-        # outputs, states = tf.nn.dynamic_rnn(cell, X2, dtype=tf.float32)
-        # states2 = states[-1][1]
-
-    with tf.variable_scope("bilstm"):
-        outputs, states = tf.nn.bidirectional_dynamic_rnn(
-            fw_cell,
-            bw_cell,
-            X1,
-            dtype=tf.float32,
-        )
-
-        f, b = states
-        # states = tf.concat([f[-1][1], b[-1][1]], 1)
-        states = tf.concat([f[-1][1]], 1)
-
-        # states = tf.concat(outputs, 2)
-        # states = tf.reshape(states, (-1, 12))
+    # with tf.variable_scope("lstm2"):
+    #     layers = [tf.contrib.rnn.BasicLSTMCell(num_units=12,
+    #                                            activation=tf.nn.relu)
+    #               for _ in range(2)]
+    #     if training:
+    #         layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
+    #     bw_cell = tf.contrib.rnn.MultiRNNCell(layers)
+    #     # outputs, states = tf.nn.dynamic_rnn(cell, X2, dtype=tf.float32)
+    #     # states2 = states[-1][1]
+    #
+    # with tf.variable_scope("bilstm"):
+    #     outputs, states = tf.nn.bidirectional_dynamic_rnn(
+    #         fw_cell,
+    #         bw_cell,
+    #         X1,
+    #         dtype=tf.float32,
+    #     )
+    #
+    #     f, b = states
+    #     # states = tf.concat([f[-1][1], b[-1][1]], 1)
+    #     states = tf.concat([f[-1][1]], 1)
+    #
+    #     # states = tf.concat(outputs, 2)
+    #     # states = tf.reshape(states, (-1, 12))
 
     with tf.variable_scope("dnn"):
         # states = tf.concat([states1, states2], 1)
