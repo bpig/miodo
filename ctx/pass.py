@@ -8,6 +8,7 @@ from os.path import join, getsize
 from collections import defaultdict
 import numpy as np
 
+
 def get_pair_by_pred(filename):
     for line in open(filename):
         line = line.strip()
@@ -67,7 +68,7 @@ def get_distinct_diff(dists, filename):
         except:
             f = 0.0
         factor += [f]
-        print "%3d" % idx, "  %.5f" % dists[idx],"  %.3f" % f, "%8d" % len(probs[idx])
+        print "%3d" % idx, "  %.5f" % dists[idx], "  %.3f" % f, "%8d" % len(probs[idx])
     # print np.sum(np.sum(labels)) / np.sum(np.sum(probs))
     return factor
 
