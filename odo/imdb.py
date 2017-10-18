@@ -97,7 +97,7 @@ def infer(fea, training=True):
 
     with tf.variable_scope("dnn"):
         # states = tf.concat([states, X2], 1)
-        init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(24.0))
+        init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(48 * 12.0))
         logits = tf.layers.dense(X2, 12, activation=leaky_relu, kernel_initializer=init)
         if training:
             logits = tf.nn.dropout(logits, 0.8)
