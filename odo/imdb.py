@@ -52,7 +52,7 @@ def infer(fea, training=True):
             X += [leaky_relu(embed)]
 
     X1 = tf.stack(X, axis=1)
-    X2 = tf.stack(X[::-1], axis=1)
+    X2 = tf.concat(X, axis=1)
     y = tf.to_float(fea['label'])
 
     keep_prob = 0.5
@@ -65,39 +65,39 @@ def infer(fea, training=True):
         if training:
             layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
         fw_cell = tf.contrib.rnn.MultiRNNCell(layers)
-        outputs, states = tf.nn.dynamic_rnn(fw_cell, X1, dtype=tf.float32)
-        states = states[-1][1]
+
+        # outputs, states = tf.nn.dynamic_rnn(fw_cell, X1, dtype=tf.float32)
+        # states = states[-1][1]
         # states = tf.concat(axis=1, values=states)
 
-    # with tf.variable_scope("lstm2"):
-    #     layers = [tf.contrib.rnn.BasicLSTMCell(num_units=12,
-    #                                            activation=tf.nn.relu)
-    #               for _ in range(2)]
-    #     if training:
-    #         layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
-    #     bw_cell = tf.contrib.rnn.MultiRNNCell(layers)
-    #     # outputs, states = tf.nn.dynamic_rnn(cell, X2, dtype=tf.float32)
-    #     # states2 = states[-1][1]
-    #
-    # with tf.variable_scope("bilstm"):
-    #     outputs, states = tf.nn.bidirectional_dynamic_rnn(
-    #         fw_cell,
-    #         bw_cell,
-    #         X1,
-    #         dtype=tf.float32,
-    #     )
-    #
-    #     f, b = states
-    #     # states = tf.concat([f[-1][1], b[-1][1]], 1)
-    #     states = tf.concat([f[-1][1]], 1)
-    #
-    #     # states = tf.concat(outputs, 2)
-    #     # states = tf.reshape(states, (-1, 12))
+    with tf.variable_scope("lstm2"):
+        layers = [tf.contrib.rnn.BasicLSTMCell(num_units=12,
+                                               activation=tf.nn.relu)
+                  for _ in range(2)]
+        if training:
+            layers = [tf.contrib.rnn.DropoutWrapper(_, input_keep_prob=keep_prob) for _ in layers]
+        bw_cell = tf.contrib.rnn.MultiRNNCell(layers)
+        # outputs, states = tf.nn.dynamic_rnn(cell, X2, dtype=tf.float32)
+        # states2 = states[-1][1]
+
+    with tf.variable_scope("bilstm"):
+        outputs, states = tf.nn.bidirectional_dynamic_rnn(
+            fw_cell,
+            bw_cell,
+            X1,
+            dtype=tf.float32,
+        )
+
+        f, b = states
+        # states = tf.concat([f[-1][1], b[-1][1]], 1)
+        states = tf.concat([f[-1][1]], 1)
+
+        # states = tf.concat(outputs, 2)
+        # states = tf.reshape(states, (-1, 12))
 
     with tf.variable_scope("dnn"):
-        # states = tf.concat([states1, states2], 1)
-        # states = outputs[-1]
-        init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(24.0))
+        states = tf.concat([states, X2], 1)
+        init = tf.truncated_normal_initializer(stddev=1.0 / math.sqrt(600.0))
         logits = tf.layers.dense(states, 12, activation=leaky_relu, kernel_initializer=init)
         if training:
             logits = tf.nn.dropout(logits, 0.8)
