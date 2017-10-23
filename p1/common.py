@@ -117,27 +117,20 @@ class NET(object):
         if deep_vars:
             print "deep_vars", deep_vars
             adam = tf.train.AdamOptimizer(learning_rate=lr)
-            # if self.model == "WDE":
-            #     adam = tf.train.AdagradOptimizer(learning_rate=0.01)
+            if self.model == "WDE":
+                adam = tf.train.AdagradOptimizer(learning_rate=0.1)
             try:
                 grads = adam.compute_gradients(loss, var_list=deep_vars)
                 for i, (g, v) in enumerate(grads):
                     if g is not None:
-                        grads[i] = (tf.clip_by_norm(g, 5), v)  # clip gradients
+                        grads[i] = (tf.clip_by_norm(g, 5), v)
                 deep_opt = adam.apply_gradients(grads, global_step=global_step)
-                # deep_opt = adam.minimize(loss, global_step=global_step,
                 opts += [deep_opt]
             except:
                 pass
 
-        print "ema,", self.ema_factor
-        ema = tf.train.ExponentialMovingAverage(self.ema_factor, global_step)
-
-        clip_all_weights = tf.get_collection("max_norm")
-
         with tf.control_dependencies(opts):
-            with tf.control_dependencies(clip_all_weights):
-                train_op = ema.apply(tf.trainable_variables())
+            train_op = tf.no_op("train_no_op")
         return train_op
 
     def loss_op(self, labels, logits):

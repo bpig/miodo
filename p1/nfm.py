@@ -8,7 +8,7 @@ class NFM(NET):
         'label': tf.FixedLenFeature([1], tf.int64),
         'wide': tf.VarLenFeature(tf.int64),
         'deep': tf.VarLenFeature(tf.int64),
-        'iid': tf.FixedLenFeature(1, tf.int64),
+        'iid': tf.VarLenFeature(tf.string),
     }
 
     def inference(self, fea, drop=0.5):
@@ -16,7 +16,6 @@ class NFM(NET):
         weights = self.weights
 
         self.step = 10
-        self.ema_factor = 0.999
         w_fea = fea['wide']
         fea = fea['deep']
 
